@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Termos Claros – Explica T&C com IA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description"
+        content="Ferramenta simples que lê e explica Termos & Condições em português claro. Cola o texto, escolhe o estilo da resposta e deixa a IA traduzir o legalês." />
+    <style>
+        :root {
+            --bg: #020617;
+            --bg-alt: #0b1220;
+            --surface: #020617;
+            --accent: #22c55e;
+            --accent-soft: rgba(34, 197, 94, 0.14);
+            --accent-strong: #16a34a;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: #1f2937;
+            --error: #f97373;
+            --radius-lg: 18px;
+            --radius-md: 10px;
+            --shadow-lg: 0 32px 90px rgba(15, 23, 42, 0.9);
+            --shadow-md: 0 16px 50px rgba(15, 23, 42, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top, #1d2436 0, #020617 52%, #020617 100%);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* NAVBAR */
+
+        .nav {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 14px 20px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-mark {
+            width: 26px;
+            height: 26px;
+            border-radius: 9px;
+            background: radial-gradient(circle at 30% 0, #22c55e 0, #16a34a 36%, #22c55e 100%);
+            box-shadow: 0 0 18px rgba(34, 197, 94, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #020617;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .logo-text-main {
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            font-size: 16px;
+        }
+
+        .logo-text-sub {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .nav-pill {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        /* PAGE LAYOUT */
+
+        .page {
+            max-width: 1120px;
+            margin: 0 auto 40px;
+            padding: 0 20px 40px;
+        }
+
+        /* HERO */
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+            gap: 26px;
+            margin-top: 10px;
+            margin-bottom: 24px;
+            align-items: center;
+        }
+
+        .hero-text h1 {
+            margin: 0 0 8px;
+            font-size: clamp(26px, 3.2vw, 32px);
+            letter-spacing: 0.01em;
+        }
+
+        .hero-text p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--muted);
+            max-width: 520px;
+        }
+
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .hero-badge {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            background: rgba(15, 23, 42, 0.95);
+            color: var(--muted);
+        }
+
+        .hero-highlight {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .hero-card {
+            border-radius: 22px;
+            padding: 14px 14px 12px;
+            background: radial-gradient(circle at 0 0, rgba(34, 197, 94, 0.2) 0, transparent 55%), #020617;
+            border: 1px solid rgba(31, 41, 55, 0.95);
+            box-shadow: var(--shadow-md);
+            font-size: 12px;
+        }
+
+        .hero-card-title {
+            font-size: 12px;
+            margin-bottom: 4px;
+            color: var(--muted);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hero-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--accent);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
+        }
+
+        .hero-conv {
+            margin-top: 6px;
+            border-radius: 12px;
+            border: 1px solid rgba(51, 65, 85, 0.95);
+            background: rgba(15, 23, 42, 0.96);
+            padding: 8px 10px;
+        }
+
+        .hero-bubble {
+            display: inline-block;
+            margin-bottom: 4px;
+            padding: 6px 10px;
+            border-radius: 14px;
+            font-size: 12px;
+            line-height: 1.4;
+            max-width: 100%;
+        }
+
+        .hero-bubble.user {
+            background: #020617;
+            border: 1px solid rgba(55, 65, 81, 0.95);
+            align-self: flex-end;
+        }
+
+        .hero-bubble.bot {
+            background: #022c22;
+            border: 1px solid rgba(34, 197, 94, 0.65);
+            color: #bbf7d0;
+        }
+
+        .hero-note {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        /* MAIN TOOL */
+
+        .tool {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+            gap: 18px;
+        }
+
+        @media (max-width: 880px) {
+            .hero {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .tool {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        .pane {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 16px 16px 14px;
+            border: 1px solid rgba(31, 41, 55, 0.95);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pane--right {
+            background: radial-gradient(circle at 100% 0, rgba(34, 197, 94, 0.18) 0, transparent 55%), #020617;
+        }
+
+        .pane-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .pane-header h2 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .pane-header small {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        select,
+        input[type="text"] {
+            width: 100%;
+            padding: 7px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(75, 85, 99, 0.9);
+            background: #020617;
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(148, 163, 184, 0.7);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 210px;
+            max-height: 340px;
+            resize: vertical;
+            padding: 9px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(55, 65, 81, 0.95);
+            background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9) 0, #020617 52%);
+            color: var(--text);
+            font-size: 13px;
+            line-height: 1.45;
+            outline: none;
+        }
+
+        textarea::placeholder {
+            color: rgba(148, 163, 184, 0.65);
+        }
+
+        .hint {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .chip {
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(55, 65, 81, 0.85);
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        .button {
+            border: none;
+            cursor: pointer;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 7px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #020617;
+            box-shadow: 0 10px 25px rgba(34, 197, 94, 0.55);
+            transition: transform 0.05s ease, box-shadow 0.08s ease, filter 0.08s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 34px rgba(34, 197, 94, 0.7);
+            filter: brightness(1.03);
+        }
+
+        .button:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 18px rgba(34, 197, 94, 0.55);
+        }
+
+        .button[disabled] {
+            opacity: 0.6;
+            cursor: default;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .button-icon {
+            width: 14px;
+            height: 14px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.8);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #bbf7d0;
+            font-size: 11px;
+        }
+
+        /* OUTPUT */
+
+        .output-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: var(--accent);
+            box-shadow: 0 0 7px rgba(34, 197, 94, 0.8);
+        }
+
+        .output-wrapper {
+            position: relative;
+            flex: 1;
+            min-height: 210px;
+            border-radius: 12px;
+            border: 1px solid rgba(31, 41, 55, 0.95);
+            background: radial-gradient(circle at 0 0, rgba(34, 197, 94, 0.16) 0, transparent 55%), #020617;
+            padding: 10px 11px 10px;
+            overflow: hidden;
+        }
+
+        .output {
+            height: calc(100% - 4px);
+            overflow-y: auto;
+            padding-right: 4px;
+            font-size: 13px;
+            line-height: 1.45;
+            color: #e5e7eb;
+            white-space: pre-wrap;
+        }
+
+        .placeholder-output {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--accent);
+        }
+
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(34, 197, 94, 0.25);
+            border-top-color: var(--accent);
+            border-radius: 999px;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error {
+            margin-top: 4px;
+            font-size: 11px;
+            color: var(--error);
+        }
+
+        /* HOW IT WORKS */
+
+        .how {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 880px) {
+            .how {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        .how-card {
+            border-radius: 14px;
+            padding: 10px 11px 10px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(31, 41, 55, 0.95);
+        }
+
+        .how-title {
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .footer-note {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-2px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        .hero-cta {
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .hero-cta-button {
+            cursor: pointer;
+            border-radius: 999px;
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            padding: 6px 12px;
+            background: #020617;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+        }
+
+        .hero-cta-button span:last-child {
+            font-size: 10px;
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="nav">
+        <div class="nav-left">
+            <div class="logo-mark">TC</div>
+            <div>
+                <div class="logo-text-main">Termos Claros</div>
+                <div class="logo-text-sub">Torna o “legalês” legível</div>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="nav-pill">Funciona com a API do Google Gemini</div>
+        </div>
+    </header>
+
+    <main class="page">
+        <section class="hero">
+            <div class="hero-text">
+                <h1>Lê os Termos &amp; Condições <span class="hero-highlight">sem sofrer</span>.</h1>
+                <p>
+                    Cola o texto chato, escolhe o estilo da resposta e deixa a IA explicar em português claro
+                    o que estás realmente a aceitar – direitos, obrigações, dados e riscos.
+                </p>
+                <div class="hero-badges">
+                    <div class="hero-badge">✔ Linguagem simples</div>
+                    <div class="hero-badge">✔ Destaca riscos importantes</div>
+                    <div class="hero-badge">✔ Vários estilos de resposta</div>
+                </div>
+                <div class="hero-cta">
+                    <button type="button" class="hero-cta-button" id="scrollToTool">
+                        <span>Começar já a resumir</span>
+                        <span>Ctrl+Enter para enviar mais rápido</span>
+                    </button>
+                </div>
+            </div>
+            <aside class="hero-card" aria-hidden="true">
+                <div class="hero-card-title">
+                    <span class="hero-dot"></span>
+                    Vista rápida do que o bot faz
+                </div>
+                <div class="hero-conv">
+                    <div class="hero-bubble user">
+                        Não percebo estes termos enormes. O que estou a aceitar?
+                    </div>
+                    <div class="hero-bubble bot">
+                        Vou ler tudo e devolver-te um resumo claro:
+                        o que recolhem sobre ti, para que usam, que direitos tens e
+                        o que pode correr mal. Depois ainda podes mudar o estilo da explicação.
+                    </div>
+                </div>
+                <p class="hero-note">
+                    O objetivo não é substituir um advogado, mas dar-te uma base para
+                    perceber melhor o que estás a aceitar.
+                </p>
+            </aside>
+        </section>
+
+        <section class="tool" id="tool">
+            <section class="pane" aria-label="Ferramenta de resumo de termos">
+                <div class="pane-header">
+                    <div>
+                        <h2>1. Escolhe o estilo</h2>
+                        <small>Define como queres que a explicação seja apresentada.</small>
+                    </div>
+                </div>
+                <div style="margin-bottom:8px;">
+                    <label for="style-select">Estilo da resposta</label>
+                    <select id="style-select">
+                        <option value="resumo direto e curto em linguagem simples">
+                            Resumo direto e curto
+                        </option>
+                        <option value="explicação detalhada mas clara em linguagem simples">
+                            Explicação detalhada mas clara
+                        </option>
+                        <option
+                            value="explicação ultra simples, como se fosse para alguém com pouca experiência digital">
+                            Ultra simples
+                        </option>
+                        <option value="explicação em tópicos curtos e organizados por secções principais">
+                            Em tópicos curtos
+                        </option>
+                        <option value="personalizado">
+                            Personalizado (escrever em baixo)
+                        </option>
+                    </select>
+                    <input type="text" id="style-custom"
+                        placeholder="Ex.: 'máximo 5 frases', 'tom muito formal', 'tom descontraído mas claro'..."
+                        style="margin-top: 6px; display: none;" />
+                    <p class="hint">
+                        O estilo controla só a forma da explicação. O conteúdo continua fiel ao texto original.
+                    </p>
+                </div>
+
+                <div>
+                    <div class="pane-header" style="margin-top:4px;">
+                        <div>
+                            <h2>2. Cola os Termos &amp; Condições</h2>
+                            <small>Texto de um site, app, jogo ou serviço online.</small>
+                        </div>
+                    </div>
+                    <label for="terms">Texto dos Termos &amp; Condições</label>
+                    <textarea id="terms" placeholder="Cola aqui o texto de Termos &amp; Condições ou Política de Privacidade que queres perceber melhor. Podes começar com as partes sobre:
+- dados pessoais
+- publicidade
+- contas e passwords
+- direitos e deveres do utilizador"></textarea>
+                    <p class="hint">
+                        Evita conteúdos com dados pessoais ou contratos privados. Este serviço é só para documentos
+                        públicos.
+                    </p>
+                </div>
+
+                <div class="actions">
+                    <span class="chip">Resumo automático com IA</span>
+                    <div>
+                        <button class="button" id="btn">
+                            <span class="button-icon">▶</span>
+                            <span>Gerar resumo</span>
+                        </button>
+                    </div>
+                </div>
+                <p class="hint" id="statusText">Pronto para resumir. Ctrl+Enter também envia.</p>
+            </section>
+
+            <section class="pane pane--right" aria-label="Resumo gerado">
+                <div class="output-header">
+                    <div>
+                        <h2>3. Lê o resumo</h2>
+                        <small>Explicação em linguagem simples, à medida do estilo escolhido.</small>
+                    </div>
+                    <div class="status">
+                        <span class="status-dot"></span>
+                        <span id="statusLabel">Assistente ativo</span>
+                    </div>
+                </div>
+                <div class="output-wrapper">
+                    <div id="output" class="output">
+                        <p class="placeholder-output">
+                            O resumo vai aparecer aqui. Inclui sempre:
+                        </p>
+                        <p class="placeholder-output">
+                            • Visão geral do que estás a aceitar<br />
+                            • O que a empresa recolhe sobre ti e para quê<br />
+                            • Direitos, obrigações e possíveis riscos<br />
+                            • Um aviso final a lembrar que isto é só um resumo e não substitui um conselho jurídico
+                        </p>
+                    </div>
+                </div>
+                <div id="error" class="error" style="display:none;"></div>
+                <p class="footer-note">
+                    Este site apenas simplifica texto. Não substitui a leitura integral dos documentos nem
+                    aconselhamento jurídico profissional.
+                </p>
+            </section>
+        </section>
+
+        <section class="how" aria-label="Como funciona">
+            <article class="how-card">
+                <div class="how-title">1. Cola o texto</div>
+                <p>
+                    Copia Termos &amp; Condições de um site ou app e cola no campo. Quanto mais relevante for o excerto,
+                    melhor o resumo.
+                </p>
+            </article>
+            <article class="how-card">
+                <div class="how-title">2. Escolhe o estilo</div>
+                <p>
+                    Decide se queres algo direto, detalhado, ultra simples ou em tópicos. Também podes inventar um
+                    estilo próprio.
+                </p>
+            </article>
+            <article class="how-card">
+                <div class="how-title">3. Lê com calma</div>
+                <p>
+                    O resumo mostra os pontos que mais interessam: dados, direitos, deveres e riscos. Em caso de dúvida
+                    séria, fala sempre com alguém especializado.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        const btn = document.getElementById("btn");
+        const termsEl = document.getElementById("terms");
+        const styleSelectEl = document.getElementById("style-select");
+        const styleCustomEl = document.getElementById("style-custom");
+        const outputEl = document.getElementById("output");
+        const errorEl = document.getElementById("error");
+        const statusLabel = document.getElementById("statusLabel");
+        const statusText = document.getElementById("statusText");
+        const scrollToToolBtn = document.getElementById("scrollToTool");
+        const toolSection = document.getElementById("tool");
+
+        styleSelectEl.addEventListener("change", () => {
+            if (styleSelectEl.value === "personalizado") {
+                styleCustomEl.style.display = "block";
+            } else {
+                styleCustomEl.style.display = "none";
+                styleCustomEl.value = "";
+            }
+        });
+
+        if (scrollToToolBtn && toolSection) {
+            scrollToToolBtn.addEventListener("click", () => {
+                toolSection.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+        }
+
+        async function summarize() {
+            const terms = termsEl.value.trim();
+            let style = styleSelectEl.value;
+
+            errorEl.style.display = "none";
+            errorEl.textContent = "";
+
+            if (!terms) {
+                errorEl.textContent = "Por favor, cola algum texto de Termos & Condições primeiro.";
+                errorEl.style.display = "block";
+                return;
+            }
+
+            if (style === "personalizado") {
+                style = styleCustomEl.value.trim();
+                if (!style) {
+                    errorEl.textContent = "Escreve o estilo personalizado que queres usar.";
+                    errorEl.style.display = "block";
+                    return;
+                }
+            }
+
+            btn.disabled = true;
+            btn.querySelector("span.button-icon").innerHTML = '<div class="spinner"></div>';
+            btn.querySelector("span:nth-child(2)").textContent = "A gerar...";
+            statusLabel.textContent = "A processar pedido";
+            statusText.textContent = "A chamar a API de resumo...";
+            outputEl.innerHTML = '<div class="loading"><div class="spinner"></div><span>A ler o texto e a gerar resumo...</span></div>';
+
+            try {
+                const resp = await fetch("/api/summarize", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ terms_text: terms, style })
+                });
+
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    throw new Error(data.error || "Falha ao obter resposta do servidor.");
+                }
+
+                outputEl.textContent = data.summary;
+                statusLabel.textContent = "Resumo gerado";
+                statusText.textContent = "Pedido concluído com sucesso.";
+            } catch (e) {
+                console.error(e);
+                errorEl.textContent =
+                    "Ocorreu um erro ao gerar o resumo. Verifica a ligação à internet e se a API está configurada corretamente.";
+                errorEl.style.display = "block";
+                statusLabel.textContent = "Erro";
+                statusText.textContent = "Não foi possível concluir o pedido.";
+                outputEl.innerHTML = "";
+            } finally {
+                btn.disabled = false;
+                btn.querySelector("span.button-icon").textContent = "▶";
+                btn.querySelector("span:nth-child(2)").textContent = "Gerar resumo";
+            }
+        }
+
+        btn.addEventListener("click", summarize);
+
+        termsEl.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                summarize();
+            }
+        });
+    </script>
+</body>
+
+</html>
