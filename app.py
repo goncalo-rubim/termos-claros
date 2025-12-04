@@ -91,7 +91,7 @@ Produz UMA resposta única que:
         config=genai.types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT,
             temperature=0.2,
-            max_output_tokens=900,
+            max_output_tokens=2048,
         ),
     )
 
