@@ -17,7 +17,7 @@ PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions"
 MODEL_NAME = "sonar-pro"
 
-# Cache em Memória (LRU Simplificado)
+# Cache em Memória
 RESPONSE_CACHE = {}
 
 # --- REDE ROBUSTA ---
@@ -67,11 +67,13 @@ def chamar_perplexity(texto: str, estilo_key: str, custom_prompt: str = "") -> s
         "Idioma: Português de Portugal (PT-PT)."
     )
 
+    # MELHORIA: Instrução explícita para usar Blockquote (>) no aviso
     user_content = (
         f"Analisa este documento ({len(texto)} caracteres):\n\n{texto[:100000]}\n\n"
-        "--- REGRAS OBRIGATÓRIAS ---\n"
-        "1. Inicia com: '> **⚠️ Nota:** Análise automática (IA). Consulte um advogado.'\n"
-        "2. Usa Markdown rico (## Títulos, **Negrito**).\n"
+        "--- REGRAS VISUAIS OBRIGATÓRIAS ---\n"
+        "1. A PRIMEIRA COISA a escrever é este bloco de citação exato:\n"
+        "   > **⚠️ AVISO LEGAL:** Esta análise é gerada por Inteligência Artificial (Sonar-Pro) para fins informativos. **Não substitui a leitura integral nem o aconselhamento jurídico profissional.**\n\n"
+        "2. Depois do aviso, usa Markdown rico (## Títulos, **Negrito**).\n"
         "3. Se houver valores (multas, preços) ou prazos, CRIA UMA TABELA.\n"
     )
 

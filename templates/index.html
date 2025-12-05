@@ -8,6 +8,8 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%2322c55e'/><text x='50' y='70' font-family='system-ui, sans-serif' font-weight='900' font-size='65' fill='%23020617' text-anchor='middle'>TC</text></svg>">
     
     <!-- Libs -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -17,7 +19,7 @@
         :root {
             color-scheme: dark;
             --bg-deep: #020617;
-            --surface-glass: rgba(15, 23, 42, 0.75);
+            --surface-glass: rgba(15, 23, 42, 0.8);
             --border: rgba(148, 163, 184, 0.1);
             --accent: #22c55e;
             --accent-glow: rgba(34, 197, 94, 0.2);
@@ -29,7 +31,7 @@
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 
         body {
-            margin: 0; font-family: system-ui, -apple-system, sans-serif;
+            margin: 0; font-family: 'Outfit', sans-serif;
             background-color: var(--bg-deep);
             background-image: 
                 radial-gradient(circle at 15% 15%, rgba(34, 197, 94, 0.08) 0%, transparent 45%),
@@ -40,23 +42,33 @@
         }
 
         /* HEADER */
-        header { text-align: center; padding: 40px 20px 20px; max-width: 700px; animation: fadeIn 0.8s ease-out; }
+        header { text-align: center; padding: 50px 20px 30px; max-width: 800px; animation: fadeIn 0.8s ease-out; }
+        
         .logo-pill {
             display: inline-flex; align-items: center; gap: 8px;
             background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
             padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 600;
-            color: var(--accent); margin-bottom: 16px; backdrop-filter: blur(5px);
+            color: var(--accent); margin-bottom: 20px; backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px var(--accent-glow);
         }
-        h1 { margin: 0; font-size: clamp(32px, 5vw, 42px); letter-spacing: -1px; line-height: 1.3; background: linear-gradient(to bottom right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        h1 { 
+            margin: 0; 
+            font-size: clamp(36px, 5vw, 48px); 
+            letter-spacing: -1.5px; 
+            line-height: 1.3; /* FORÇADO A 1.3 */
+            background: linear-gradient(to bottom right, #fff, #94a3b8); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
 
         /* MAIN LAYOUT */
         .main-container {
-            width: 100%; max-width: 1100px; padding: 0 20px;
+            width: 100%; max-width: 1200px; padding: 0 20px;
             display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
             margin-bottom: 40px; flex-grow: 1; align-items: start;
         }
         @media (max-width: 900px) { .main-container { grid-template-columns: 1fr; } }
-        @media (min-width: 901px) { .glass-card:first-child { position: sticky; top: 20px; } }
+        @media (min-width: 901px) { .glass-card:first-child { position: sticky; top: 30px; } }
 
         /* CARDS */
         .glass-card {
@@ -66,23 +78,25 @@
             box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5); transition: 0.3s;
         }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-        .card-title { font-weight: 600; font-size: 15px; color: #fff; }
+        .card-title { font-weight: 600; font-size: 16px; color: #fff; display: flex; gap: 8px; align-items: center; }
 
-        /* TABS (Texto vs PDF) */
+        /* TABS */
         .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
         .tab-btn {
-            background: rgba(255,255,255,0.05); border: 1px solid transparent; color: var(--text-muted);
-            padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; flex: 1; transition: 0.2s;
+            background: rgba(255,255,255,0.03); border: 1px solid transparent; color: var(--text-muted);
+            padding: 10px 16px; border-radius: 10px; font-size: 13px; cursor: pointer; flex: 1; transition: 0.2s; font-weight: 500;
         }
         .tab-btn.active { background: rgba(34, 197, 94, 0.1); color: #fff; border-color: var(--accent); }
 
-        /* INPUTS */
+        /* TEXTAREA (Improved) */
         textarea {
-            width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border);
-            color: var(--text-main); border-radius: 12px; padding: 14px; font-size: 14px;
+            width: 100%; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border);
+            color: var(--text-main); border-radius: 12px; padding: 16px; font-size: 14px;
             flex-grow: 1; min-height: 200px; resize: none; line-height: 1.6; transition: 0.2s;
+            font-family: 'JetBrains Mono', monospace;
         }
-        textarea:focus { border-color: var(--accent); outline: none; }
+        textarea:focus { border-color: var(--accent); background: rgba(0, 0, 0, 0.4); outline: none; }
+        textarea::placeholder { color: rgba(255, 255, 255, 0.2); }
 
         /* PDF DROP ZONE */
         .drop-zone {
@@ -96,7 +110,7 @@
 
         select {
             width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border);
-            color: var(--text-main); border-radius: 12px; padding: 12px; margin-top: 10px;
+            color: var(--text-main); border-radius: 12px; padding: 12px; margin-top: 10px; font-family: inherit;
         }
 
         /* BUTTONS */
@@ -109,17 +123,38 @@
         .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.1); }
         .btn-primary:disabled { opacity: 0.6; cursor: wait; transform: none; filter: grayscale(1); }
 
-        .btn-text { background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; }
-        .btn-icon { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted); padding: 6px 12px; border-radius: 8px; cursor: pointer; display: flex; gap: 6px; align-items: center; }
+        .btn-text { background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; padding: 6px 10px; border-radius: 6px; transition: 0.2s; }
+        .btn-text:hover { background: rgba(34, 197, 94, 0.1); }
+
+        .btn-icon { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted); padding: 6px 12px; border-radius: 8px; cursor: pointer; display: flex; gap: 6px; align-items: center; transition: 0.3s; }
+        .btn-icon:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        
+        .btn-icon.success { background: rgba(34, 197, 94, 0.2); color: var(--accent); border-color: var(--accent); }
 
         /* OUTPUT */
         .output-scroll { height: 100%; overflow-y: auto; padding-right: 6px; color: #e2e8f0; font-size: 15px; line-height: 1.7; }
-        .output-scroll h2 { color: #fff; margin-top: 20px; font-size: 17px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .output-scroll h2 { color: #fff; margin-top: 24px; font-size: 17px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; }
         .output-scroll strong { color: var(--accent); }
-        .output-scroll table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; background: rgba(0,0,0,0.2); border-radius: 8px; }
-        .output-scroll th { text-align: left; padding: 10px; background: rgba(255,255,255,0.05); color: #fff; }
-        .output-scroll td { padding: 10px; border-top: 1px solid var(--border); color: var(--text-muted); }
         
+        /* AVISO NO OUTPUT (O QUE PEDISTE) */
+        /* O Backend envia isto como '>', o CSS transforma-o num bloco destacado */
+        .output-scroll blockquote {
+            background: rgba(234, 179, 8, 0.1); /* Fundo Amarelo Transparente */
+            border-left: 4px solid #eab308; /* Barra Lateral Amarela */
+            color: #fef08a; /* Texto Amarelo Claro */
+            margin: 0 0 20px 0;
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .output-scroll blockquote strong { color: #f59e0b; }
+
+        /* Tabelas */
+        .output-scroll table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; }
+        .output-scroll th { text-align: left; padding: 12px; background: rgba(255,255,255,0.05); color: #fff; border-bottom: 1px solid var(--border); }
+        .output-scroll td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text-muted); }
+
         /* STATUS */
         .status-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--text-muted); }
         .status-msg { font-size: 13px; animation: pulse 1.5s infinite; }
@@ -128,7 +163,7 @@
         .spinner { width: 24px; height: 24px; border: 2px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* FOOTER (Simple Text) */
+        /* FOOTER SIMPLES */
         .simple-footer {
             width: 100%; padding: 30px 20px; border-top: 1px solid var(--border);
             text-align: center; color: #64748b; font-size: 13px; line-height: 1.6;
@@ -147,7 +182,7 @@
         <!-- INPUT -->
         <section class="glass-card">
             <div class="card-header">
-                <span class="card-title">1. Documento</span>
+                <span class="card-title"><i data-lucide="file-input" width="18"></i> 1. Documento</span>
                 <button id="btnExample" class="btn-text">Exemplo</button>
             </div>
 
@@ -158,7 +193,7 @@
             </div>
 
             <!-- Text Input -->
-            <textarea id="termsInput" placeholder="Cola aqui o contrato, termos de uso ou política de privacidade..."></textarea>
+            <textarea id="termsInput" placeholder="Cola aqui os Termos de Uso, Contrato ou Política de Privacidade..."></textarea>
             
             <!-- PDF Drop Zone -->
             <div id="dropZone" class="drop-zone">
@@ -169,7 +204,7 @@
             </div>
 
             <div style="margin-top:20px;">
-                <label>Estilo do Resumo</label>
+                <label style="font-size:11px; text-transform:uppercase; color:rgba(255,255,255,0.5); font-weight:700;">Estilo do Resumo</label>
                 <select id="styleSelect">
                     <option value="curto">Resumo Curto & Direto</option>
                     <option value="detalhado">Detalhado</option>
@@ -186,8 +221,10 @@
         <!-- OUTPUT -->
         <section class="glass-card">
             <div class="card-header">
-                <span class="card-title">Resultado</span>
-                <button class="btn-icon" id="btnCopy"><i data-lucide="copy" width="14"></i> Copiar</button>
+                <span class="card-title"><i data-lucide="file-check" width="18"></i> Resultado</span>
+                <button class="btn-icon" id="btnCopy">
+                    <i data-lucide="copy" width="14"></i> <span id="copyLabel">Copiar</span>
+                </button>
             </div>
             <div class="output-scroll" id="output">
                 <div style="text-align:center; padding-top:100px; opacity:0.5;">
@@ -198,6 +235,7 @@
         </section>
     </main>
 
+    <!-- FOOTER SIMPLES -->
     <footer class="simple-footer">
         Isenção de Responsabilidade: Esta ferramenta utiliza Inteligência Artificial para processar informação.
         Embora o objetivo seja a precisão, podem ocorrer erros. O conteúdo é apenas informativo e 
@@ -265,13 +303,13 @@
                 if(i<text.length) { 
                     el.value += text.charAt(i); 
                     i++; 
-                    setTimeout(type, 2); // Escrita rápida
+                    setTimeout(type, 2); 
                 }
             };
             type();
         };
 
-        // Função Update Status
+        // Update Status
         function updateStatus(msg) {
             document.getElementById('output').innerHTML = `
                 <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; color:var(--text-muted); gap:15px;">
@@ -304,8 +342,8 @@
                     formData.append('terms_text', textVal);
                 }
 
-                // Simulação de Progresso
-                setTimeout(() => updateStatus("A detetar riscos e cláusulas..."), 1500);
+                // Feedback visual de progresso
+                setTimeout(() => updateStatus("A analisar riscos e cláusulas..."), 1500);
                 setTimeout(() => updateStatus("A formatar o relatório..."), 3500);
 
                 const res = await fetch('/api/summarize', { method: 'POST', body: formData });
@@ -324,11 +362,25 @@
             }
         };
 
-        // Copiar
+        // Copiar Inteligente
         document.getElementById('btnCopy').onclick = () => {
             const text = document.getElementById('output').innerText;
-            if(!text) return;
-            navigator.clipboard.writeText(text).then(() => alert("Copiado!"));
+            if(!text || text.includes("O resumo aparecerá aqui")) return;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('btnCopy');
+                const label = document.getElementById('copyLabel');
+                
+                btn.classList.add('success');
+                btn.innerHTML = `<i data-lucide="check" width="14"></i> Copiado!`;
+                lucide.createIcons();
+
+                setTimeout(() => {
+                    btn.classList.remove('success');
+                    btn.innerHTML = `<i data-lucide="copy" width="14"></i> Copiar`;
+                    lucide.createIcons();
+                }, 2000);
+            });
         };
     </script>
 </body>
