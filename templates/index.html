@@ -1,340 +1,328 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Termos Claros | Enterprise AI</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>Termos Claros – IA Jurídica</title>
     
-    <!-- Pro Fonts & Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%2322c55e'/><text x='50' y='70' font-family='system-ui, sans-serif' font-weight='900' font-size='65' fill='%23020617' text-anchor='middle'>TC</text></svg>">
+    
+    <!-- Libs -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        /* --- DESIGN SYSTEM: COSMIC GLASS --- */
         :root {
-            --bg-deep: #050505;
-            --surface: rgba(20, 20, 25, 0.7);
-            --surface-hover: rgba(40, 40, 45, 0.8);
-            --border: rgba(255, 255, 255, 0.08);
-            --accent: #6d28d9; /* Deep Purple */
-            --accent-glow: #8b5cf6;
-            --success: #10b981;
-            --text-main: #ffffff;
-            --text-muted: #a1a1aa;
-            --font-main: 'Outfit', sans-serif;
-            --font-display: 'Space Grotesk', sans-serif;
+            color-scheme: dark;
+            --bg-deep: #020617;
+            --surface-glass: rgba(15, 23, 42, 0.75);
+            --border: rgba(148, 163, 184, 0.1);
+            --accent: #22c55e;
+            --accent-glow: rgba(34, 197, 94, 0.2);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
             --radius: 16px;
         }
 
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        
+
         body {
+            margin: 0; font-family: system-ui, -apple-system, sans-serif;
             background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(34, 197, 94, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(56, 189, 248, 0.05) 0%, transparent 40%);
             color: var(--text-main);
-            font-family: var(--font-main);
-            margin: 0; min-height: 100vh;
-            display: flex; overflow: hidden;
-        }
-
-        /* --- BACKGROUND FX --- */
-        .orb {
-            position: absolute; border-radius: 50%; filter: blur(100px); z-index: -1; opacity: 0.4;
-            animation: float 20s infinite ease-in-out;
-        }
-        .orb-1 { width: 400px; height: 400px; background: var(--accent); top: -10%; left: -10%; }
-        .orb-2 { width: 300px; height: 300px; background: #3b82f6; bottom: -10%; right: -10%; animation-delay: -5s; }
-        @keyframes float { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, 50px); } }
-
-        /* --- LAYOUT --- */
-        .sidebar {
-            width: 300px; background: rgba(10, 10, 10, 0.5); border-right: 1px solid var(--border);
-            padding: 24px; display: flex; flex-direction: column; backdrop-filter: blur(20px);
-            transition: transform 0.3s; z-index: 10;
-        }
-        .main-content {
-            flex: 1; padding: 40px; overflow-y: auto; position: relative;
+            min-height: 100vh;
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* --- COMPONENTS --- */
-        h1 { font-family: var(--font-display); font-size: 24px; margin: 0 0 30px 0; display: flex; align-items: center; gap: 10px; }
-        .logo-glow { color: var(--accent-glow); filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.5)); }
-
-        .history-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
-        .history-item {
-            padding: 12px; border-radius: 8px; background: transparent; border: 1px solid transparent;
-            color: var(--text-muted); cursor: pointer; transition: all 0.2s; font-size: 14px;
+        /* HEADER */
+        header { text-align: center; padding: 40px 20px 20px; max-width: 700px; animation: fadeIn 0.8s ease-out; }
+        .logo-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
+            padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 600;
+            color: var(--accent); margin-bottom: 16px; backdrop-filter: blur(5px);
         }
-        .history-item:hover { background: var(--surface); color: #fff; }
-        .history-item.active { background: rgba(109, 40, 217, 0.1); border-color: var(--accent); color: #fff; }
+        h1 {
+            margin: 0; font-size: clamp(32px, 5vw, 42px); letter-spacing: -1px; line-height: 1.3;
+            background: linear-gradient(to bottom right, #fff, #94a3b8);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
 
+        /* LAYOUT */
+        .main-container {
+            width: 100%; max-width: 1100px; padding: 0 20px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+            margin-bottom: 60px; flex-grow: 1; align-items: start;
+        }
+        @media (max-width: 900px) { .main-container { grid-template-columns: 1fr; } }
+        @media (min-width: 901px) { .glass-card:first-child { position: sticky; top: 20px; } }
+
+        /* CARDS */
         .glass-card {
-            background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-            padding: 32px; width: 100%; max-width: 900px; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px); transition: all 0.3s;
+            background: var(--surface-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border); border-radius: var(--radius); padding: 24px;
+            display: flex; flex-direction: column; min-height: 520px; 
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
         }
-
-        /* Inputs */
-        .tabs { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; margin-bottom: 24px; width: fit-content; }
-        .tab { padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; color: var(--text-muted); transition: 0.2s; }
-        .tab.active { background: var(--surface-hover); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-
-        textarea {
-            width: 100%; height: 200px; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
-            border-radius: 12px; padding: 16px; color: #fff; font-family: var(--font-main); resize: none;
-            font-size: 15px; line-height: 1.6; transition: 0.2s;
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
         }
-        textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(109, 40, 217, 0.2); }
+        .card-title { font-weight: 600; font-size: 15px; color: #fff; }
 
-        /* File Drop */
-        .drop-area {
-            border: 2px dashed var(--border); border-radius: 12px; padding: 40px; text-align: center;
-            cursor: pointer; transition: 0.2s; background: rgba(0,0,0,0.2);
-        }
-        .drop-area:hover, .drop-area.dragover { border-color: var(--accent); background: rgba(109, 40, 217, 0.05); }
-
-        /* Buttons */
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent), #4c1d95); border: none; padding: 16px 32px;
-            border-radius: 12px; color: #fff; font-weight: 600; font-size: 16px; cursor: pointer;
-            width: 100%; margin-top: 24px; transition: 0.3s; box-shadow: 0 10px 20px -5px rgba(109, 40, 217, 0.4);
-            display: flex; justify-content: center; align-items: center; gap: 10px;
-        }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px -5px rgba(109, 40, 217, 0.6); }
-        .btn-primary:disabled { opacity: 0.6; cursor: wait; transform: none; }
-
-        /* Output */
-        .markdown-body { color: #e2e8f0; line-height: 1.8; font-size: 16px; }
-        .markdown-body h2 { color: #fff; margin-top: 32px; font-family: var(--font-display); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .markdown-body strong { color: var(--accent-glow); }
-        .markdown-body table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
-        .markdown-body th { text-align: left; border-bottom: 1px solid var(--border); padding: 10px; color: var(--text-muted); }
-        .markdown-body td { border-bottom: 1px solid var(--border); padding: 10px; }
+        /* INPUTS */
+        label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(248, 250, 252, 0.5); font-weight: 700; margin-bottom: 8px; display: block; }
         
-        /* Mobile */
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .main-content { padding: 20px; }
+        select, input[type="text"], textarea {
+            width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border);
+            color: var(--text-main); border-radius: 12px; padding: 14px; font-size: 14px;
+            font-family: inherit; transition: 0.2s;
         }
+        textarea { flex-grow: 1; min-height: 200px; resize: none; line-height: 1.6; }
+        select:focus, input:focus, textarea:focus { border-color: var(--accent); background: rgba(0, 0, 0, 0.5); }
+        
+        #customInputWrapper { max-height: 0; overflow: hidden; opacity: 0; transition: 0.3s; }
+        #customInputWrapper.visible { max-height: 60px; margin-top: 12px; opacity: 1; }
+
+        /* Char Counter */
+        .char-counter { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 5px; }
+
+        /* BUTTONS */
+        .btn-primary {
+            margin-top: 16px; width: 100%; padding: 14px; border: none; border-radius: 12px;
+            background: linear-gradient(135deg, #22c55e, #15803d); color: #fff; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.3); transition: 0.2s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-primary:disabled { opacity: 0.6; cursor: wait; transform: none; filter: grayscale(1); }
+
+        .btn-text { background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; padding: 4px 8px; }
+        .btn-text:hover { background: rgba(34, 197, 94, 0.1); border-radius: 4px; }
+        .btn-text.danger { color: #ef4444; }
+        .btn-text.danger:hover { background: rgba(239, 68, 68, 0.1); }
+
+        .btn-icon {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted);
+            padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; display: flex; gap: 6px; align-items: center;
+        }
+        .btn-icon:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+        /* OUTPUT STYLING (The important part for tables) */
+        .output-scroll { height: 100%; overflow-y: auto; padding-right: 6px; color: #e2e8f0; font-size: 15px; line-height: 1.7; }
+        .output-scroll h2 { color: #fff; margin-top: 24px; font-size: 17px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; }
+        .output-scroll strong { color: var(--accent); }
+        .output-scroll ul { padding-left: 20px; }
+        .output-scroll blockquote { border-left: 3px solid #eab308; background: rgba(234, 179, 8, 0.1); margin: 15px 0; padding: 12px; font-size: 13px; color: #fde047; border-radius: 0 8px 8px 0; }
+        
+        /* TABLE STYLING */
+        .output-scroll table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; background: rgba(0,0,0,0.2); border-radius: 8px; overflow: hidden; }
+        .output-scroll th { text-align: left; padding: 12px; background: rgba(255,255,255,0.05); color: #fff; border-bottom: 1px solid var(--border); }
+        .output-scroll td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text-muted); }
+        .output-scroll tr:last-child td { border-bottom: none; }
+
+        /* FOOTER */
+        .app-footer { width: 100%; padding: 30px; background: #0b1121; border-top: 1px solid var(--border); text-align: center; font-size: 12px; color: #475569; }
+
+        /* ANIMATIONS */
+        .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body>
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
 
-    <!-- SIDEBAR: HISTORY -->
-    <aside class="sidebar">
-        <h1><i data-lucide="shield-check" class="logo-glow"></i> Termos Claros</h1>
-        <div style="font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:12px; margin-top:20px;">Recentes</div>
-        <ul id="historyList" class="history-list">
-            <!-- Items injected by JS -->
-            <li class="history-item" style="opacity:0.5; font-style:italic;">Sem histórico</li>
-        </ul>
-        <div style="margin-top:auto; font-size:11px; color:var(--text-muted); opacity:0.5;">
-            v3.0.0 Enterprise • Secure Cache
-        </div>
-    </aside>
+    <header>
+        <div class="logo-pill"><i data-lucide="sparkles" width="12"></i> Termos Claros AI</div>
+        <h1>Traduz o "Legalês"<br>para Português Claro.</h1>
+    </header>
 
-    <!-- MAIN CONTENT -->
-    <main class="main-content">
-        
-        <!-- INPUT STAGE -->
-        <div id="inputStage" class="glass-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
-                <h2 style="margin:0; font-size:20px;">Nova Análise</h2>
-                <div class="tabs">
-                    <div class="tab active" onclick="app.setMode('text')">Texto</div>
-                    <div class="tab" onclick="app.setMode('file')">PDF</div>
+    <main class="main-container">
+        <!-- Input Card -->
+        <section class="glass-card">
+            <div class="card-header">
+                <span class="card-title">1. Documento Jurídico</span>
+                <div style="display:flex; gap:10px;">
+                    <button id="btnClear" class="btn-text danger" style="display:none;">Limpar</button>
+                    <button id="btnExample" class="btn-text">Usar exemplo</button>
                 </div>
             </div>
 
-            <!-- Text Input -->
-            <div id="viewText">
-                <textarea id="rawText" placeholder="Cola aqui os Termos & Condições ou Contrato..."></textarea>
+            <textarea id="termsInput" placeholder="Cola aqui os Termos de Uso, Contrato ou Política de Privacidade..."></textarea>
+            <div class="char-counter" id="charCounter">0 caracteres</div>
+
+            <div style="margin-top:20px;">
+                <label for="styleSelect">Estilo do Resumo</label>
+                <select id="styleSelect">
+                    <option value="curto">Resumo Curto & Direto (Recomendado)</option>
+                    <option value="detalhado">Explicação Detalhada</option>
+                    <option value="el5">Explicado a uma criança (Simples)</option>
+                    <option value="riscos">Apenas Riscos e Perigos 🚩</option>
+                    <option value="custom">✨ Personalizado</option>
+                </select>
             </div>
 
-            <!-- File Input -->
-            <div id="viewFile" style="display:none;">
-                <div class="drop-area" id="dropArea">
-                    <i data-lucide="file-up" size="48" style="color:var(--text-muted); margin-bottom:16px;"></i>
-                    <p id="fileName" style="margin:0; color:var(--text-muted);">Arrasta o PDF ou clica para upload</p>
-                    <input type="file" id="fileInput" accept=".pdf" style="display:none;">
-                </div>
-            </div>
-
-            <!-- Config -->
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:24px;">
-                <div>
-                    <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:8px;">PERFIL DE ANÁLISE</label>
-                    <select id="styleSelect" style="width:100%; background:var(--bg-deep); border:1px solid var(--border); color:#fff; padding:12px; border-radius:8px;">
-                        <option value="curto">Executivo (Resumo Rápido)</option>
-                        <option value="detalhado">Jurídico (Profundo)</option>
-                        <option value="el5">Simplificado (EL5)</option>
-                        <option value="riscos">Auditoria de Riscos 🚩</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:8px;">FOCO ESPECÍFICO (OPCIONAL)</label>
-                    <input type="text" id="customPrompt" placeholder="Ex: Multas de cancelamento..." style="width:100%; background:var(--bg-deep); border:1px solid var(--border); color:#fff; padding:12px; border-radius:8px;">
-                </div>
-            </div>
-
-            <button id="btnAnalyze" class="btn-primary" onclick="app.analyze()">
-                <span id="btnText">Iniciar Análise IA</span>
-                <i data-lucide="sparkles"></i>
-            </button>
-        </div>
-
-        <!-- OUTPUT STAGE -->
-        <div id="outputStage" class="glass-card" style="display:none;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:24px;">
-                <button onclick="app.reset()" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; display:flex; gap:8px;">
-                    <i data-lucide="arrow-left"></i> Voltar
-                </button>
-                <div style="display:flex; gap:12px;">
-                    <button onclick="app.download()" title="PDF" style="background:transparent; border:1px solid var(--border); color:#fff; padding:8px; border-radius:8px; cursor:pointer;"><i data-lucide="download"></i></button>
-                    <button onclick="app.copy()" title="Copiar" style="background:transparent; border:1px solid var(--border); color:#fff; padding:8px; border-radius:8px; cursor:pointer;"><i data-lucide="copy"></i></button>
-                </div>
+            <div id="customInputWrapper">
+                <input type="text" id="customPrompt" placeholder="Ex: 'Quais são as regras de cancelamento?'">
             </div>
             
-            <div id="resultContent" class="markdown-body"></div>
-        </div>
+            <button class="btn-primary" id="btnSummarize">
+                <span>Analisar Documento</span> <i data-lucide="arrow-right" width="16"></i>
+            </button>
+        </section>
 
+        <!-- Output Card -->
+        <section class="glass-card">
+            <div class="card-header">
+                <span class="card-title">
+                    <span class="status-dot" id="statusDot" style="width:8px; height:8px; background:var(--text-muted); border-radius:50%; margin-right:8px;"></span>
+                    <span id="statusLabel">Resultado</span>
+                </span>
+                <button class="btn-icon" id="btnCopy">
+                    <i data-lucide="copy" width="14"></i>
+                    <span id="copyText">Copiar</span>
+                </button>
+            </div>
+
+            <div class="output-scroll" id="output">
+                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; color:var(--text-muted); text-align:center; opacity:0.6;">
+                    <i data-lucide="file-text" size="48" style="margin-bottom:12px; opacity:0.5;"></i>
+                    <p style="margin:0; font-size:14px;">O resumo aparecerá aqui.</p>
+                </div>
+            </div>
+        </section>
     </main>
 
+    <footer class="app-footer">
+        <div><strong>AVISO LEGAL:</strong> Ferramenta baseada em IA (Sonar Pro). Não substitui aconselhamento jurídico.</div>
+    </footer>
+
     <script>
-        // --- 3. CLASS-BASED JAVASCRIPT ARCHITECTURE ---
-        class AppState {
-            constructor() {
-                this.file = null;
-                this.mode = 'text';
-                this.history = JSON.parse(localStorage.getItem('tc_history') || '[]');
-                this.initUI();
-                this.renderHistory();
+        lucide.createIcons();
+        const els = {
+            btnSummarize: document.getElementById('btnSummarize'),
+            input: document.getElementById('termsInput'),
+            select: document.getElementById('styleSelect'),
+            output: document.getElementById('output'),
+            customWrap: document.getElementById('customInputWrapper'),
+            customInput: document.getElementById('customPrompt'),
+            btnCopy: document.getElementById('btnCopy'),
+            btnExample: document.getElementById('btnExample'),
+            btnClear: document.getElementById('btnClear'),
+            statusDot: document.getElementById('statusDot'),
+            statusLabel: document.getElementById('statusLabel'),
+            charCounter: document.getElementById('charCounter')
+        };
+
+        marked.use({ breaks: true });
+
+        // Contador de Caracteres & Botão Limpar
+        els.input.addEventListener('input', () => {
+            const len = els.input.value.length;
+            els.charCounter.innerText = `${len.toLocaleString()} caracteres`;
+            els.btnClear.style.display = len > 0 ? 'block' : 'none';
+        });
+
+        els.btnClear.addEventListener('click', () => {
+            els.input.value = '';
+            els.input.dispatchEvent(new Event('input'));
+            els.input.focus();
+        });
+
+        // Toggle Custom Input
+        els.select.addEventListener('change', () => {
+            if (els.select.value === 'custom') {
+                els.customWrap.classList.add('visible');
+                setTimeout(() => els.customInput.focus(), 200);
+            } else {
+                els.customWrap.classList.remove('visible');
             }
+        });
 
-            initUI() {
-                lucide.createIcons();
-                
-                // Drag & Drop
-                const dropArea = document.getElementById('dropArea');
-                const fileInput = document.getElementById('fileInput');
-                
-                dropArea.onclick = () => fileInput.click();
-                fileInput.onchange = (e) => this.handleFile(e.target.files[0]);
-                
-                dropArea.ondragover = (e) => { e.preventDefault(); dropArea.classList.add('dragover'); };
-                dropArea.ondragleave = () => dropArea.classList.remove('dragover');
-                dropArea.ondrop = (e) => {
-                    e.preventDefault(); dropArea.classList.remove('dragover');
-                    this.handleFile(e.dataTransfer.files[0]);
-                };
-            }
-
-            setMode(newMode) {
-                this.mode = newMode;
-                document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-                event.target.classList.add('active');
-                
-                document.getElementById('viewText').style.display = newMode === 'text' ? 'block' : 'none';
-                document.getElementById('viewFile').style.display = newMode === 'file' ? 'block' : 'none';
-            }
-
-            handleFile(file) {
-                if (!file) return;
-                if (file.size > 10 * 1024 * 1024) return alert("Ficheiro demasiado grande.");
-                this.file = file;
-                document.getElementById('fileName').innerText = `📄 ${file.name}`;
-                document.getElementById('fileName').style.color = '#fff';
-            }
-
-            async analyze() {
-                const btn = document.getElementById('btnAnalyze');
-                const textVal = document.getElementById('rawText').value;
-                const style = document.getElementById('styleSelect').value;
-                const custom = document.getElementById('customPrompt').value;
-
-                if (this.mode === 'text' && textVal.length < 20) return alert("Texto demasiado curto.");
-                if (this.mode === 'file' && !this.file) return alert("Selecione um PDF.");
-
-                // Loading State
-                btn.disabled = true;
-                btn.innerHTML = `<div class="spinner"></div> A Processar...`; // Add CSS spinner manually if needed
-
-                try {
-                    const formData = new FormData();
-                    formData.append('style', style);
-                    formData.append('custom', custom);
-                    
-                    if (this.mode === 'file') formData.append('file', this.file);
-                    else formData.append('text', textVal);
-
-                    const res = await fetch('/api/analyze', { method: 'POST', body: formData });
-                    const data = await res.json();
-                    
-                    if (data.error) throw new Error(data.error);
-
-                    // Success
-                    this.showResult(data.summary);
-                    this.addToHistory(data.summary.substring(0, 50) + "...");
-
-                } catch (e) {
-                    alert("Erro: " + e.message);
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = `<span id="btnText">Iniciar Análise IA</span> <i data-lucide="sparkles"></i>`;
-                    lucide.createIcons();
+        // Efeito de Escrita para o Exemplo
+        els.btnExample.addEventListener('click', () => {
+            const text = `TERMOS DE USO (EXEMPLO):
+1. DADOS: Ao aceitar, concorda que a "Empresa X" pode monitorizar a sua localização e vender dados a terceiros.
+2. FIDELIZAÇÃO: Contrato de 24 meses. Cancelar custa 200€.
+3. ISENÇÃO: A empresa não se responsabiliza por perdas de dados.`;
+            
+            els.input.value = "";
+            let i = 0;
+            const typeWriter = () => {
+                if (i < text.length) {
+                    els.input.value += text.charAt(i);
+                    i++;
+                    els.input.dispatchEvent(new Event('input')); // Atualiza o contador
+                    setTimeout(typeWriter, 10);
                 }
+            };
+            typeWriter();
+        });
+
+        // Copiar Texto
+        els.btnCopy.addEventListener('click', () => {
+            if (!els.output.innerText || els.output.innerText.includes("O resumo aparecerá aqui")) return;
+            navigator.clipboard.writeText(els.output.innerText).then(() => {
+                const span = document.getElementById('copyText');
+                span.textContent = "Copiado!";
+                els.btnCopy.style.borderColor = "var(--accent)";
+                setTimeout(() => { 
+                    span.textContent = "Copiar"; 
+                    els.btnCopy.style.borderColor = ""; 
+                }, 2000);
+            });
+        });
+
+        // Função Principal
+        async function summarize() {
+            const text = els.input.value.trim();
+            if (!text) {
+                alert("Por favor, insere algum texto.");
+                return;
             }
 
-            showResult(markdown) {
-                document.getElementById('inputStage').style.display = 'none';
-                document.getElementById('outputStage').style.display = 'block';
-                document.getElementById('resultContent').innerHTML = DOMPurify.sanitize(marked.parse(markdown));
-            }
+            els.btnSummarize.disabled = true;
+            els.btnSummarize.innerHTML = '<div class="spinner"></div> Processando...';
+            els.statusDot.style.background = "var(--accent)";
+            els.statusLabel.innerText = "A pensar...";
+            els.output.innerHTML = `<div style="text-align:center; padding-top:50px; color:var(--text-muted);"><div class="spinner" style="margin:0 auto 10px;"></div>A ler documento...</div>`;
 
-            reset() {
-                document.getElementById('inputStage').style.display = 'block';
-                document.getElementById('outputStage').style.display = 'none';
-            }
+            try {
+                const res = await fetch('/api/summarize', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        terms_text: text,
+                        style: els.select.value,
+                        custom_prompt: els.customInput.value
+                    })
+                });
 
-            // History Management
-            addToHistory(preview) {
-                const item = { date: new Date().toLocaleTimeString(), preview };
-                this.history.unshift(item);
-                if (this.history.length > 5) this.history.pop();
-                localStorage.setItem('tc_history', JSON.stringify(this.history));
-                this.renderHistory();
-            }
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
 
-            renderHistory() {
-                const list = document.getElementById('historyList');
-                if (this.history.length === 0) return;
-                list.innerHTML = this.history.map(item => `
-                    <li class="history-item">
-                        <div style="font-size:10px; color:var(--accent-glow);">${item.date}</div>
-                        ${item.preview}
-                    </li>
-                `).join('');
-            }
+                els.output.innerHTML = DOMPurify.sanitize(marked.parse(data.summary));
+                els.statusLabel.innerText = "Concluído";
 
-            download() {
-                const el = document.getElementById('resultContent');
-                html2pdf().set({ margin: 1, filename: 'Analise_Termos_Claros.pdf' }).from(el).save();
-            }
-
-            copy() {
-                const text = document.getElementById('resultContent').innerText;
-                navigator.clipboard.writeText(text).then(() => alert("Copiado!"));
+            } catch (err) {
+                els.statusDot.style.background = "#ef4444";
+                els.statusLabel.innerText = "Erro";
+                els.output.innerHTML = `<div style="color:#ef4444; text-align:center; padding-top:20px;"><strong>Erro:</strong> ${err.message}</div>`;
+            } finally {
+                els.btnSummarize.disabled = false;
+                els.btnSummarize.innerHTML = '<span>Analisar Documento</span> <i data-lucide="arrow-right" width="16"></i>';
+                lucide.createIcons();
             }
         }
 
-        // Init App
-        const app = new AppState();
+        els.btnSummarize.addEventListener('click', summarize);
     </script>
 </body>
 </html>

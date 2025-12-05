@@ -1,215 +1,128 @@
 import os
-import time
-import logging
+import requests
 import hashlib
-import re
-from typing import Dict, Optional, Tuple
-from collections import OrderedDict
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from werkzeug.utils import secure_filename
-from pypdf import PdfReader
-from requests import Session
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from dotenv import load_dotenv
 
-# --- 1. CONFIGURAÇÃO DE ENGENHARIA ---
 load_dotenv()
-
-# Logging Estruturado
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(module)s: %(message)s'
-)
-logger = logging.getLogger("TermosClarosEngine")
 
 app = Flask(__name__)
 CORS(app)
 
-# Rate Limiting (Proteção contra abuso: 10 pedidos por minuto por IP)
-limiter = Limiter(
-    get_remote_address,
-    app=app,
-    default_limits=["10 per minute", "200 per day"],
-    storage_uri="memory://"
+PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
+PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions"
+MODEL_NAME = "sonar-pro"
+
+# --- CACHE EM MEMÓRIA (Poupa dinheiro e tempo) ---
+# Guarda as últimas 100 respostas. Se o texto for igual, devolve logo.
+RESPONSE_CACHE = {}
+
+def get_session():
+    session = requests.Session()
+    retry = Retry(total=3, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+    session.mount("https://", HTTPAdapter(max_retries=retry))
+    return session
+
+http_session = get_session()
+
+AVISO_LEGAL = (
+    "> **⚠️ AVISO IA:** Este resumo é gerado automaticamente e serve apenas para fins informativos. "
+    "**Não substitui a leitura integral do documento nem constitui aconselhamento jurídico profissional.** "
+    "Para decisões legais, consulte um advogado."
 )
 
-# Constantes
-PERPLEXITY_KEY = os.getenv("PERPLEXITY_API_KEY")
-API_URL = "https://api.perplexity.ai/chat/completions"
-MODEL = "sonar-pro"
-MAX_TOKENS = 4000
-MAX_CHAR_LIMIT = 150000
+STYLE_IDENTITIES = {
+    "curto": "Editor Executivo. Sê direto. Usa APENAS bullet points e tabelas para valores. Máxima síntese.",
+    "detalhado": "Professor de Direito. Explica todas as nuances, exceções e termos técnicos.",
+    "el5": "Educadora de Infância. Explica como se eu tivesse 5 anos. Usa emojis e metáforas simples.",
+    "riscos": "Auditor de Risco. Ignora as coisas boas. Lista APENAS os perigos, multas e abusos de dados."
+}
 
-# --- 2. SERVIÇO DE CACHE TTL (Time-To-Live) ---
-class SmartCache:
-    """Cache LRU com expiração de tempo para gestão eficiente de memória."""
-    def __init__(self, capacity: int = 50, ttl_seconds: int = 3600):
-        self.cache = OrderedDict()
-        self.capacity = capacity
-        self.ttl = ttl_seconds
+def chamar_perplexity(texto: str, estilo_key: str, custom_prompt: str = "") -> str:
+    if not PERPLEXITY_API_KEY:
+        raise RuntimeError("API Key não configurada.")
 
-    def get(self, key: str) -> Optional[str]:
-        if key not in self.cache:
-            return None
-        value, timestamp = self.cache[key]
-        if time.time() - timestamp > self.ttl:
-            self.cache.pop(key)
-            return None
-        self.cache.move_to_end(key)
-        return value
+    # 1. VERIFICAR CACHE
+    # Criamos um hash único baseada no texto + estilo + prompt extra
+    cache_key = hashlib.md5(f"{texto}-{estilo_key}-{custom_prompt}".encode()).hexdigest()
+    
+    if cache_key in RESPONSE_CACHE:
+        print(f"⚡ Cache Hit! Retornando resposta salva para {cache_key[:8]}...")
+        return RESPONSE_CACHE[cache_key]
 
-    def set(self, key: str, value: str):
-        if key in self.cache:
-            self.cache.move_to_end(key)
-        self.cache[key] = (value, time.time())
-        if len(self.cache) > self.capacity:
-            self.cache.popitem(last=False)
+    # 2. SE NÃO ESTIVER EM CACHE, CHAMA A API
+    persona = STYLE_IDENTITIES.get(estilo_key, STYLE_IDENTITIES["curto"])
+    
+    system_content = (
+        "Tu és uma IA de análise jurídica ('Termos Claros').\n"
+        f"A tua Persona: {persona}\n"
+        "Idioma Obrigatório: Português de Portugal (PT-PT)."
+    )
 
-cache_service = SmartCache()
+    user_content = (
+        f"Analisa este texto:\n\n{texto[:100000]}\n\n"
+        "--- INSTRUÇÕES FINAIS ---\n"
+        "1. Começa com: '> **⚠️ Nota:** Resumo gerado por IA. Não substitui um advogado.'\n"
+        "2. Usa Markdown rico (## Títulos, **Negrito**).\n"
+        "3. Se houver custos, multas ou prazos, **CRIA OBRIGATORIAMENTE UMA TABELA**.\n"
+    )
 
-# --- 3. SERVIÇOS DE UTILIDADE ---
-class TextProcessor:
-    @staticmethod
-    def clean_text(text: str) -> str:
-        """Remove espaços extra e caracteres inúteis para poupar tokens."""
-        text = re.sub(r'\s+', ' ', text).strip()
-        return text[:MAX_CHAR_LIMIT]
+    if custom_prompt:
+        user_content += f"\nATENÇÃO EXTRA AO PEDIDO: {custom_prompt}"
 
-    @staticmethod
-    def extract_from_pdf(file_stream) -> str:
-        try:
-            reader = PdfReader(file_stream)
-            text = [page.extract_text() for page in reader.pages if page.extract_text()]
-            return "\n".join(text)
-        except Exception as e:
-            logger.error(f"PDF Error: {e}")
-            raise ValueError("O ficheiro PDF está corrompido ou é ilegível.")
+    payload = {
+        "model": MODEL_NAME,
+        "messages": [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_content}
+        ],
+        "temperature": 0.1,
+        "max_tokens": 3500
+    }
 
-class AIService:
-    def __init__(self):
-        self.session = Session()
-        retries = Retry(total=3, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504])
-        self.session.mount("https://", HTTPAdapter(max_retries=retries))
-
-    def generate_prompt(self, text: str, style: str, custom: str) -> list:
-        personas = {
-            "curto": "Sê um Editor Executivo. Resposta telegráfica. Usa APENAS bullet points.",
-            "detalhado": "Sê um Jurista Sénior. Explica com profundidade, citando implicações legais.",
-            "el5": "Sê um Professor do 1º Ciclo. Explica como se eu tivesse 5 anos (metáforas simples).",
-            "riscos": "Sê um Auditor de Risco. Foca 100% nas cláusulas perigosas e abusivas (RED FLAGS)."
-        }
-        
-        persona = personas.get(style, personas["curto"])
-        
-        system_msg = (
-            "Tu és o 'Termos Claros AI', uma inteligência de elite em análise contratual.\n"
-            "Idioma de Saída: Português de Portugal (PT-PT).\n"
-            f"Persona Ativa: {persona}"
+    try:
+        response = http_session.post(
+            PERPLEXITY_URL, 
+            json=payload, 
+            headers={"Authorization": f"Bearer {PERPLEXITY_API_KEY}", "Content-Type": "application/json"},
+            timeout=90
         )
-
-        user_msg = (
-            f"Analisa este texto ({len(text)} chars):\n\n{text[:50000]}...\n\n"
-            "--- OUTPUT REQUIREMENTS ---\n"
-            "1. Inicia com: '> **⚠️ Nota:** Análise gerada por IA (Sonar Pro). Não substitui advogado.'\n"
-            "2. Usa formatação Markdown rica (H2, **Bold**, Tabelas).\n"
-            "3. Se houver valores monetários ou prazos, OBRIGATÓRIO criar uma tabela.\n"
-            "4. Estrutura: Resumo Executivo -> Pontos Críticos -> Análise de Dados -> Veredito.\n"
-        )
+        response.raise_for_status()
+        resultado = response.json()["choices"][0]["message"]["content"]
         
-        if custom:
-            user_msg += f"\nPRIORIDADE MÁXIMA AO PEDIDO: {custom}"
-
-        return [{"role": "system", "content": system_msg}, {"role": "user", "content": user_msg}]
-
-    def analyze(self, text: str, style: str, custom: str) -> str:
-        # Cache Key Generation
-        content_hash = hashlib.md5((text[:1000] + style + custom).encode()).hexdigest()
+        # 3. GUARDAR NO CACHE (Limita a 100 itens para não encher a memória do Render)
+        if len(RESPONSE_CACHE) > 100:
+            RESPONSE_CACHE.pop(next(iter(RESPONSE_CACHE))) # Remove o mais antigo
+        RESPONSE_CACHE[cache_key] = resultado
         
-        cached = cache_service.get(content_hash)
-        if cached:
-            logger.info(f"Cache HIT: {content_hash}")
-            return cached
+        return resultado
 
-        # API Call
-        try:
-            payload = {
-                "model": MODEL,
-                "messages": self.generate_prompt(text, style, custom),
-                "temperature": 0.1,
-                "max_tokens": MAX_TOKENS
-            }
-            
-            resp = self.session.post(
-                API_URL, 
-                json=payload, 
-                headers={"Authorization": f"Bearer {PERPLEXITY_KEY}"},
-                timeout=90
-            )
-            resp.raise_for_status()
-            
-            result = resp.json()["choices"][0]["message"]["content"]
-            cache_service.set(content_hash, result)
-            return result
-            
-        except Exception as e:
-            logger.error(f"API Error: {e}")
-            raise RuntimeError(f"Falha na comunicação com a IA: {str(e)}")
-
-ai_engine = AIService()
-
-# --- 4. ROTAS DA APLICAÇÃO ---
+    except Exception as e:
+        print(f"Erro API: {e}")
+        raise RuntimeError(f"Erro na IA: {str(e)}")
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
-@app.route("/api/analyze", methods=["POST"])
-@limiter.limit("5 per minute") # Proteção extra por IP
-def analyze_endpoint():
+@app.route("/api/summarize", methods=["POST"])
+def api_summarize():
+    data = request.get_json(silent=True) or {}
+    texto = data.get("terms_text", "")
+    estilo = data.get("style", "curto")
+    custom = data.get("custom_prompt", "")
+
+    if not texto or len(texto.strip()) < 10:
+        return jsonify({"error": "Texto demasiado curto."}), 400
+
     try:
-        text = ""
-        
-        # 1. Input Handling
-        if 'file' in request.files:
-            file = request.files['file']
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                if filename.endswith('.pdf'):
-                    text = TextProcessor.extract_from_pdf(file)
-                else:
-                    return jsonify({"error": "Formato não suportado. Use PDF."}), 400
-        
-        elif request.form.get('text'):
-            text = request.form.get('text')
-        
-        # 2. Validation
-        clean_text = TextProcessor.clean_text(text)
-        if len(clean_text) < 50:
-            return jsonify({"error": "Texto insuficiente para análise."}), 400
-
-        # 3. Processing
-        style = request.form.get('style', 'curto')
-        custom = request.form.get('custom', '')
-        
-        summary = ai_engine.analyze(clean_text, style, custom)
-        
-        return jsonify({
-            "success": True, 
-            "summary": summary, 
-            "stats": {"chars": len(clean_text), "model": MODEL}
-        })
-
+        resumo = chamar_perplexity(texto, estilo, custom)
+        return jsonify({"summary": resumo})
     except Exception as e:
-        logger.error(f"Critical Endpoint Error: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.errorhandler(429)
-def ratelimit_handler(e):
-    return jsonify({"error": "Muitos pedidos. Tenta novamente em 1 minuto."}), 429
-
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    app.run(debug=True)
