@@ -53,7 +53,7 @@ TAREFA:
 Analisa os Termos e Condições e traduz para Português de Portugal.
 
 REGRA VISUAL:
-Se houver conceitos complexos (ex: fluxo de dados), insere uma tag de imagem: .
+Se houver conceitos complexos (ex: fluxo de dados), insere uma tag de imagem: [Image of data flow diagram explaining X]
 
 ESTRUTURA OBRIGATÓRIA DA RESPOSTA:
 1. Inicia SEMPRE com este aviso exato:
