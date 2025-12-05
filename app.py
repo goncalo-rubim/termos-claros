@@ -1,129 +1,137 @@
-from google import genai
+import os
+import requests
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
-import os
 
-# 1) Carregar variáveis do .env
+# Carrega variáveis do ficheiro .env (apenas para desenvolvimento local)
+# No Render, as variáveis são lidas diretamente do sistema.
 load_dotenv()
-
-# !!! ALTERAÇÃO 1: Mudar para a variável de ambiente do Google/Gemini !!!
-API_KEY = os.getenv("GEMINI_API_KEY")
-
-if not API_KEY:
-    # !!! ALTERAÇÃO 2: Mudar a mensagem de erro !!!
-    raise RuntimeError("GEMINI_API_KEY não está definido no .env")
-
-# 2) Cliente Gemini
-# !!! ALTERAÇÃO 3: Usar a biblioteca genai e configurar com a API Key !!!
-try:
-    client = genai.Client(api_key=API_KEY)
-except Exception as e:
-    raise RuntimeError(f"Falha ao inicializar o cliente Gemini: {e}")
 
 app = Flask(__name__)
 
-# 3) PROMPT DE SISTEMA
+# --- CONFIGURAÇÃO ---
+
+# A chave da API deve estar definida nas "Environment Variables" do Render
+PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
+
+# Endpoint oficial da API Perplexity
+PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions"
+
+# Modelo escolhido (o mais capaz e com maior contexto atual)
+# Nota: A Perplexity atualiza nomes frequentemente, este é o topo de gama atual baseado no Llama 3.1
+MODEL_NAME = "sonar"
+
+# Prompt de Sistema (Cérebro da IA)
 SYSTEM_PROMPT = """
-És um assistente especializado em ler e explicar Termos & Condições, Políticas de Privacidade e outros textos legais complexos.
+És um especialista jurídico sênior (mas não advogado) que traduz "legalês" para Português de Portugal claro, estruturado e acessível.
 
-REGRAS GERAIS
-- Escreves SEMPRE em português de Portugal.
-- NÃO és advogado, NÃO dás aconselhamento jurídico.
-- As tuas respostas servem apenas para explicar e simplificar o texto.
-- Nunca inventes cláusulas que não estejam no texto fornecido.
-- Se algo não estiver claro no texto, dizes explicitamente que não está claro.
+OBJETIVO:
+Ler o texto jurídico fornecido e gerar um resumo prático formatado em MARKDOWN.
 
-OBJETIVO PRINCIPAL
-Quando receberes:
-- um estilo de resposta pedido
-- o texto dos Termos & Condições
+REGRAS DE FORMATAÇÃO:
+- Usa `###` para títulos de secções.
+- Usa listas com hífens `-` para facilitar a leitura.
+- Usa **negrito** para destacar riscos ou dados sensíveis.
+- Não uses blocos de código para o texto normal.
 
-Deves:
-1) Ler e compreender o texto.
-2) Resumir e explicar o que a pessoa está realmente a aceitar.
-3) Destacar riscos, obrigações, limitações e pontos sensíveis.
-4) Adaptar a linguagem ao ESTILO pedido.
-5) Terminar SEMPRE com um aviso de que isto é apenas um resumo simplificado.
+ESTRUTURA DA RESPOSTA:
+1. ### 🎯 Resumo em 1 Frase
+   (A essência do documento numa frase simples)
 
-ESTRUTURA RECOMENDADA DA RESPOSTA
-1) Visão geral rápida
-2) O que a empresa recolhe sobre ti
-3) Para que usa esses dados
-4) Direitos do utilizador
-5) Obrigações e comportamentos exigidos
-6) Riscos e pontos críticos
-7) Aviso final obrigatório
+2. ### 🚩 Red Flags (Pontos Críticos)
+   (Lista com emojis 🔴 para cláusulas perigosas, abusivas, renúncias de direitos ou coisas estranhas)
 
-ADAPTAÇÃO AO ESTILO PEDIDO
-- ultra simples
-- técnico mas claro
-- resumo direto e curto
-- em tópicos curtos
-- estilo desconhecido → tom equilibrado
+3. ### 👤 Os teus Dados
+   (O que recolhem, cookies, localização, e com quem partilham)
 
-NUNCA:
-- Digas à pessoa se deve aceitar os termos.
-- Garantas que os dados estão 100% seguros.
-"""
-# 4) Função que chama a API do Gemini
-def resumir_tc(texto_tc: str, estilo: str) -> str:
-    if not estilo:
-        estilo = "resumo direto, claro e conciso em linguagem simples"
+4. ### ⚖️ Os teus Direitos
+   (Como cancelar, apagar conta, ou resolver disputas)
 
-    user_prompt = f"""
-Estilo de resposta pedido: {estilo}
+5. ### 💡 Conclusão
+   (Veredito final neutro)
 
-Texto dos Termos & Condições a explicar:
-\"\"\"{texto_tc}\"\"\"
-
-Produz UMA resposta única que:
-- Siga o ESTILO DE RESPOSTA pedido acima.
-- Respeite as REGRAS e a ESTRUTURA definidas na mensagem de sistema.
-- Seja fiel ao texto fornecido (não inventes cláusulas).
-- Destaque o que o utilizador está a aceitar, os riscos e os direitos.
-- Termine com um AVISO claro a dizer que isto é apenas um resumo
-  e não é aconselhamento jurídico.
+Termina sempre com:
+*Aviso: Isto é um resumo automático gerado por IA e não substitui aconselhamento jurídico profissional.*
 """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=user_prompt,
-        config=genai.types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
-            temperature=0.2,
-            max_output_tokens=2048,
-        ),
-    )
+def chamar_perplexity(texto: str, estilo: str) -> str:
+    """
+    Envia o texto para a API da Perplexity e devolve o resumo.
+    """
+    if not PERPLEXITY_API_KEY:
+        raise RuntimeError("A variável de ambiente PERPLEXITY_API_KEY não está configurada.")
 
-    return response.text
+    headers = {
+        "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
+        "Content-Type": "application/json"
+    }
 
-# 5) Rota para servir o front-end
-@app.route("/")
-def home():
-    return render_template("index.html")
+    # Construção da mensagem para o Chat Completion
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": f"Estilo de resposta desejado: {estilo}\n\nTexto dos Termos para analisar:\n{texto}"}
+    ]
 
-# 6) Endpoint JSON para o front-end chamar
-@app.route("/api/summarize", methods=["POST"])
-def api_summarize():
-    data = request.get_json(silent=True) or {}
-
-    texto_tc = data.get("terms_text", "")
-    estilo = data.get("style", "").strip()
-
-    if not texto_tc.strip():
-        return jsonify({"error": "terms_text em falta"}), 400
+    payload = {
+        "model": MODEL_NAME,
+        "messages": messages,
+        "temperature": 0.2,       # Baixa temperatura para reduzir alucinações
+        "max_tokens": 3000,       # Limite de resposta (suficiente para resumos detalhados)
+        "top_p": 0.9,
+        "return_citations": False # Não precisamos de citações da web para analisar um texto colado
+    }
 
     try:
-        resumo = resumir_tc(texto_tc, estilo)
+        response = requests.post(PERPLEXITY_URL, json=payload, headers=headers)
+        response.raise_for_status() # Lança exceção se o código HTTP for 4xx ou 5xx
+        
+        data = response.json()
+        
+        # Extrai o conteúdo da resposta da IA
+        return data["choices"][0]["message"]["content"]
+
+    except requests.exceptions.RequestException as e:
+        print(f"Erro na requisição à API: {e}")
+        # Tenta obter detalhes do erro se a API devolveu JSON de erro
+        if e.response is not None:
+             print(f"Detalhe da API: {e.response.text}")
+        raise RuntimeError("Falha ao comunicar com a inteligência artificial.")
+
+# --- ROTAS DA APLICAÇÃO ---
+
+@app.route("/")
+def home():
+    # Serve o ficheiro index.html da pasta 'templates'
+    return render_template("index.html")
+
+@app.route("/api/summarize", methods=["POST"])
+def api_summarize():
+    # Obtém os dados JSON enviados pelo frontend
+    data = request.get_json(silent=True) or {}
+    
+    texto_tc = data.get("terms_text", "")
+    estilo = data.get("style", "claro e direto")
+
+    # 1. Validação: Texto vazio ou muito curto
+    if not texto_tc or len(texto_tc.strip()) < 10:
+        return jsonify({"error": "O texto fornecido é demasiado curto. Por favor, cola o texto completo."}), 400
+    
+    # 2. Validação: Texto excessivamente longo (Segurança)
+    # 120.000 caracteres é um limite seguro para evitar sobrecarregar o servidor/API
+    if len(texto_tc) > 120000:
+        return jsonify({"error": "O texto é demasiado longo (máx 120k caracteres). Tenta enviar por partes."}), 400
+
+    try:
+        # Chama a função principal
+        resumo = chamar_perplexity(texto_tc, estilo)
         return jsonify({"summary": resumo})
-
+    
     except Exception as e:
-        print("Erro ao chamar a API do Gemini:", repr(e))
-
-        return jsonify({
-            "error": "Falha ao gerar o resumo. Verifica a API key, o modelo e a ligação."
-        }), 500
+        # Log do erro no servidor (aparece nos logs do Render)
+        print(f"Erro interno: {e}")
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
+    # Este bloco só corre em desenvolvimento local.
+    # No Render, o Gunicorn é usado e este bloco é ignorado.
     app.run(debug=True)
-

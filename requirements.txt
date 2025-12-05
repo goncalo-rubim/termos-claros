@@ -1,5 +1,4 @@
 flask
-python-dotenv
-google-genai
 gunicorn
-
+python-dotenv
+requests
