@@ -3,90 +3,81 @@ import requests
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 
-# Carrega variáveis de ambiente
 load_dotenv()
 
 app = Flask(__name__)
 
-# Configurações
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions"
 MODEL_NAME = "sonar"
 
-# --- PERSONALIDADES DA IA (VERSÃO AGRESSIVA PARA FORÇAR O ESTILO) ---
-STYLE_PROMPTS = {
+# --- DEFINIÇÃO DE IDENTIDADES (O segredo para funcionar bem) ---
+# Em vez de regras complexas, definimos "Quem é a IA" neste momento.
+STYLE_IDENTITIES = {
     "curto": (
-        "RESUMO ULTRA-CURTO. Usa APENAS bullet points. "
-        "Máximo de 3 a 5 pontos principais. Sê direto e seco. Sem introduções longas."
+        "IDENTIDADE: És um Gestor Executivo sem tempo. "
+        "ESTILO: Telegráfico, direto ao ponto, usa apenas bullet points. "
+        "OBJETIVO: Resumir o máximo de informação no mínimo de palavras."
     ),
     "detalhado": (
-        "ANÁLISE PROFUNDA E DETALHADA. Divide por secções claras (Dados, Direitos, Riscos). "
-        "Explica conceitos técnicos. Usa parágrafos completos e cita cláusulas específicas se necessário."
+        "IDENTIDADE: És um Jurista Professor. "
+        "ESTILO: Claro, educativo e completo. Explica o 'porquê' das coisas. "
+        "OBJETIVO: Garantir que o utilizador entende todas as nuances."
     ),
     "el5": (
-        "EXPLICAÇÃO PARA UMA CRIANÇA DE 5 ANOS. Usa linguagem extremamente simples, emojis e analogias do dia-a-dia. "
-        "Tom divertido e educativo. Evita qualquer jargão jurídico."
+        "IDENTIDADE: És um Professor da Escola Primária. "
+        "ESTILO: Usa linguagem infantil, emojis divertidos e analogias (ex: 'os teus brinquedos', 'as regras da casa'). "
+        "OBJETIVO: Explicar conceitos complexos a uma criança de 5 anos. NUNCA uses termos técnicos sem explicar."
     ),
     "riscos": (
-        "ALERTA DE PERIGO 🚩. Ignora os benefícios. Foca-te EXCLUSIVAMENTE nas 'Red Flags', cláusulas abusivas, "
-        "perda de privacidade e renúncia de direitos. Sê alarmista e crítico."
+        "IDENTIDADE: És um Auditor de Segurança Paranoico. "
+        "ESTILO: Alarmista, crítico e focado apenas no negativo. "
+        "OBJETIVO: Encontrar todas as armadilhas. Ignora as partes boas do texto."
     ),
-    "custom": "Segue estritamente a instrução personalizada: "
+    "custom": "IDENTIDADE PERSONALIZADA: Segue esta instrução: "
 }
 
-# Prompt de Sistema (Cérebro)
-SYSTEM_PROMPT_BASE = """
-És o 'Termos Claros', um assistente jurídico AI especializado em Proteção do Consumidor (Portugal/EU).
+# --- PROMPT MESTRA ---
+SYSTEM_PROMPT = """
+{identity_instruction}
 
-⚠️ REGRA CRÍTICA DE FORMATO:
-A tua resposta DEVE começar SEMPRE com este bloco exato (Markdown quote):
+TAREFA:
+Analisa os Termos e Condições fornecidos e traduz para Português de Portugal.
 
-> **⚠️ AVISO IA:** Este resumo é gerado automaticamente e serve apenas para fins informativos. **Não substitui a leitura integral do documento nem constitui aconselhamento jurídico profissional.** Para decisões legais, consulte um advogado.
+REGRA VISUAL (DIAGRAMAS):
+Se houver conceitos complexos (ex: fluxo de dados, hierarquia legal), insere uma tag de imagem para ajudar a explicar: .
 
----
+ESTRUTURA OBRIGATÓRIA DA RESPOSTA:
+1. Inicia SEMPRE com este bloco exato:
+   > **⚠️ AVISO IA:** Este resumo é informativo e não substitui aconselhamento jurídico profissional.
 
-ESTRUTURA DO RESUMO (Usa Markdown):
-1. 🎯 **Resumo em 1 Frase**
-2. 🚨 **Red Flags & Riscos** (Usa emojis de alerta)
-3. 👤 **Os teus Dados** (O que recolhem e com quem partilham)
-4. ⚖️ **Os teus Direitos** (Cancelamento, Reembolso, Litígios)
-5. 💡 **Veredito Final**
-
-INSTRUÇÃO VISUAL:
-Se explicares um fluxo de dados complexo, usa a tag: `
-
-[Image of data flow diagram explaining X]
-`.
-
-CONTEXTO: O utilizador pediu o estilo: "{style_instruction}"
+2. **🎯 Resumo Global** (Escreve no teu ESTILO de identidade)
+3. **🚨 Pontos Críticos** (Escreve no teu ESTILO de identidade)
+4. **👤 Os teus Dados** (Escreve no teu ESTILO de identidade)
+5. **⚖️ Os teus Direitos** (Escreve no teu ESTILO de identidade)
+6. **💡 Veredito** (Escreve no teu ESTILO de identidade)
 """
 
 def chamar_perplexity(texto: str, estilo_key: str, custom_prompt: str = "") -> str:
     if not PERPLEXITY_API_KEY:
-        raise RuntimeError("A API Key do Perplexity não está configurada.")
+        raise RuntimeError("API Key não configurada.")
 
-    # 1. Define a instrução de estilo
-    instruction = STYLE_PROMPTS.get(estilo_key, STYLE_PROMPTS["curto"])
+    # 1. Seleciona a Identidade
+    identity = STYLE_IDENTITIES.get(estilo_key, STYLE_IDENTITIES["curto"])
     if estilo_key == "custom" and custom_prompt:
-        instruction = f"Instrução personalizada: {custom_prompt}"
+        identity += custom_prompt
 
-    # 2. Configura o Prompt do Sistema
-    system_content = SYSTEM_PROMPT_BASE.format(style_instruction=instruction)
+    # 2. Monta o Prompt de Sistema
+    system_content = SYSTEM_PROMPT.format(identity_instruction=identity)
 
-    # 3. FORÇA O ESTILO NA MENSAGEM DO UTILIZADOR (A correção nuclear)
-    user_content_reinforced = (
-        f"⚠️ INSTRUÇÃO OBRIGATÓRIA: {instruction}\n"
-        f"---------------------------------------------------\n"
-        f"ANALISA ESTE TEXTO:\n\n{texto}"
-    )
-
+    # 3. Envia o pedido
     payload = {
         "model": MODEL_NAME,
         "messages": [
             {"role": "system", "content": system_content},
-            {"role": "user", "content": user_content_reinforced}
+            {"role": "user", "content": f"Aplica a tua IDENTIDADE e analisa este texto:\n\n{texto}"}
         ],
-        "temperature": 0.2, # Baixa temperatura para precisão factual
+        "temperature": 0.2,
         "max_tokens": 3000
     }
 
@@ -100,10 +91,7 @@ def chamar_perplexity(texto: str, estilo_key: str, custom_prompt: str = "") -> s
     
     except requests.exceptions.RequestException as e:
         print(f"Erro API: {e}")
-        # Retorna uma mensagem de erro genérica para o frontend não quebrar
-        raise RuntimeError("Não foi possível contactar a inteligência artificial. Tente novamente.")
-
-# --- ROTAS ---
+        raise RuntimeError("Erro ao contactar a IA.")
 
 @app.route("/")
 def home():
@@ -116,12 +104,11 @@ def api_summarize():
     estilo = data.get("style", "curto")
     custom = data.get("custom_prompt", "")
 
-    # Validações de Backend
     if not texto or len(texto.strip()) < 10:
-        return jsonify({"error": "O texto é demasiado curto para ser analisado."}), 400
+        return jsonify({"error": "Texto demasiado curto."}), 400
     
     if len(texto) > 150000:
-        return jsonify({"error": "Texto demasiado longo (limite: 150k caracteres)."}), 400
+        return jsonify({"error": "Texto demasiado longo."}), 400
 
     try:
         resumo = chamar_perplexity(texto, estilo, custom)
