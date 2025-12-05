@@ -1,456 +1,550 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <title>Termos Claros – IA Jurídica</title>
+    <title>Termos Claros | IA Jurídica</title>
     
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%2322c55e'/><text x='50' y='70' font-family='system-ui, sans-serif' font-weight='900' font-size='65' fill='%23020617' text-anchor='middle'>TC</text></svg>">
+    <!-- Favicon SVG Dinâmico -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2322c55e'/><path d='M30 35 L50 35 M30 50 L70 50 M30 65 L60 65' stroke='white' stroke-width='8' stroke-linecap='round'/></svg>">
     
-    <meta name="description" content="Tradutor de Termos e Condições com IA. Simples, rápido e seguro.">
+    <!-- Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
+    <!-- Libs -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 
     <style>
-        /* --- DESIGN SYSTEM (Modern Dark Theme) --- */
+        /* --- DESIGN TOKENS --- */
         :root {
-            color-scheme: dark;
-            --bg-deep: #020617;
-            --surface-glass: rgba(15, 23, 42, 0.65);
-            --surface-hover: rgba(30, 41, 59, 0.7);
-            --border: rgba(148, 163, 184, 0.1);
-            --border-highlight: rgba(34, 197, 94, 0.3);
+            --bg-body: #09090b;       /* Zinc 950 */
+            --bg-card: #18181b;       /* Zinc 900 */
+            --bg-input: #27272a;      /* Zinc 800 */
             
-            --accent: #22c55e;
-            --accent-glow: rgba(34, 197, 94, 0.2);
-            --warning-bg: rgba(234, 179, 8, 0.1);
-            --warning-border: rgba(234, 179, 8, 0.3);
-            --warning-text: #fde047;
-
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-focus: rgba(34, 197, 94, 0.5);
             
-            --radius: 16px;
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --primary: #22c55e;       /* Green 500 */
+            --primary-hover: #16a34a; /* Green 600 */
+            --primary-glow: rgba(34, 197, 94, 0.15);
+            
+            --text-main: #fafafa;     /* Zinc 50 */
+            --text-muted: #a1a1aa;    /* Zinc 400 */
+            
+            --radius-lg: 16px;
+            --radius-md: 8px;
+            
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
         }
 
+        /* --- GLOBAL RESET & BASE --- */
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 
         body {
             margin: 0;
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-deep);
+            background-color: var(--bg-body);
             background-image: 
-                radial-gradient(circle at 15% 15%, rgba(34, 197, 94, 0.08) 0%, transparent 45%),
-                radial-gradient(circle at 85% 85%, rgba(56, 189, 248, 0.08) 0%, transparent 45%);
+                radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(63, 63, 70, 0.1) 0px, transparent 50%);
             color: var(--text-main);
+            font-family: var(--font-sans);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
+            overflow-x: hidden;
         }
 
-        /* --- HEADER --- */
+        /* Noise Texture Overlay */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* --- LAYOUT --- */
+        .app-wrapper {
+            width: 100%;
+            max-width: 1280px;
+            padding: 0 20px;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
         header {
             text-align: center;
-            padding: 50px 20px 30px;
-            max-width: 650px;
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        .logo-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border);
-            padding: 6px 14px;
-            border-radius: 99px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 16px;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 0 15px var(--accent-glow);
+            padding: 60px 0 40px;
+            animation: slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         h1 {
-            margin: 0;
-            font-size: clamp(32px, 5vw, 46px);
-            letter-spacing: -1.5px;
-            line-height: 1.3;
-            background: linear-gradient(to bottom right, #fff, #94a3b8);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin: 16px 0;
+            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        p.hero-desc {
-            color: var(--text-muted);
-            font-size: 16px;
-            line-height: 1.6;
-            margin-top: 10px;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 99px;
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        /* --- MAIN GRID --- */
-        .main-container {
-            width: 100%;
-            max-width: 1100px;
-            padding: 0 20px;
+        /* --- GRID SYSTEM --- */
+        .main-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 24px;
+            gap: 32px;
             margin-bottom: 60px;
-            flex-grow: 1;
-            /* ALTERAÇÃO 1: Alinha os itens no topo, impedindo que estiquem */
-            align-items: start;
         }
 
-        /* ALTERAÇÃO 2: Faz o cartão da esquerda "colar" ao topo apenas no PC */
-        @media (min-width: 901px) {
-            .glass-card:first-child {
-                position: sticky;
-                top: 30px; /* Distância do topo */
-                z-index: 10;
-            }
+        @media (max-width: 1024px) {
+            .main-grid { grid-template-columns: 1fr; }
         }
 
-        @media (max-width: 900px) {
-            .main-container { grid-template-columns: 1fr; padding: 0 16px; }
-            header { padding-top: 30px; }
-        }
-
-        /* --- CARDS (Glassmorphism) --- */
-        .glass-card {
-            background: var(--surface-glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
+        /* --- CARDS --- */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);
             display: flex;
             flex-direction: column;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            transition: var(--transition);
-            
-            /* Ajuste para mobile: altura mínima */
-            min-height: 520px; 
-        }
-        
-        /* Ajuste para o cartão da direita ter altura mínima no PC */
-        .glass-card:last-child {
-            min-height: 520px;
+            transition: transform 0.2s, border-color 0.2s;
         }
 
-        .glass-card:hover { border-color: rgba(255,255,255,0.1); }
+        /* Sticky Left Column on Desktop */
+        @media (min-width: 1025px) {
+            .card.input-section {
+                position: sticky;
+                top: 40px;
+                height: fit-content;
+            }
+            .card.output-section {
+                min-height: 80vh;
+            }
+        }
 
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 18px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
         }
-        .card-title { font-weight: 600; font-size: 15px; color: #fff; display: flex; align-items: center; gap: 8px; }
-        .status-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent); }
 
-        /* --- INPUTS & CONTROLS --- */
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* --- FORM ELEMENTS --- */
+        .form-group { margin-bottom: 20px; }
+        
         label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: rgba(248, 250, 252, 0.5);
-            font-weight: 700;
-            margin-bottom: 8px;
             display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 500;
         }
 
-        select, input[type="text"], textarea {
+        select, input, textarea {
             width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            border-radius: 12px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
             padding: 14px;
-            font-size: 14px;
-            font-family: inherit;
-            transition: var(--transition);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            transition: all 0.2s;
         }
 
         textarea {
-            flex-grow: 1;
-            min-height: 200px;
-            resize: none;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
             line-height: 1.6;
+            min-height: 250px;
+            resize: vertical;
         }
 
         select:focus, input:focus, textarea:focus {
-            border-color: var(--accent);
-            background: rgba(0, 0, 0, 0.5);
-            box-shadow: 0 0 0 2px var(--accent-glow);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-glow);
         }
 
-        select option {
-            background-color: #020617;
-            color: #f8fafc;
-        }
-
+        /* Custom Prompt Toggle */
         #customInputWrapper {
-            max-height: 0; overflow: hidden; opacity: 0; transition: var(--transition);
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.3s ease;
         }
-        #customInputWrapper.visible { max-height: 60px; margin-top: 12px; opacity: 1; }
+        #customInputWrapper > div { overflow: hidden; }
+        #customInputWrapper.open { grid-template-rows: 1fr; margin-top: 12px; }
 
-        /* BUTTONS */
+        /* Char Counter */
+        .char-counter {
+            text-align: right;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+        .char-counter.limit { color: #ef4444; }
+
+        /* --- BUTTONS --- */
         .btn-primary {
-            margin-top: 16px;
             width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #22c55e, #15803d);
-            color: #fff;
-            font-weight: 600;
-            font-size: 15px;
-            cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.3);
-            transition: var(--transition);
-        }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(34, 197, 94, 0.4); }
-        .btn-primary:active { transform: scale(0.98); }
-        .btn-primary:disabled { opacity: 0.6; cursor: wait; filter: grayscale(1); transform: none; }
-
-        .btn-text {
-            background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: var(--transition);
-        }
-        .btn-text:hover { background: rgba(34, 197, 94, 0.1); }
-
-        .btn-icon {
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted);
-            padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: var(--transition);
-        }
-        .btn-icon:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.2); }
-
-        /* --- OUTPUT AREA --- */
-        .output-scroll {
-            height: 100%;
-            overflow-y: auto;
-            padding-right: 6px;
-            color: #e2e8f0;
-            font-size: 15px;
-            line-height: 1.7;
-        }
-
-        .output-scroll h3 {
-            color: var(--accent);
-            font-size: 16px;
-            margin: 24px 0 10px;
-            border-bottom: 1px solid rgba(34, 197, 94, 0.2);
-            padding-bottom: 6px;
-        }
-        .output-scroll strong { color: #fff; font-weight: 700; }
-        .output-scroll ul { padding-left: 20px; margin: 10px 0; }
-        .output-scroll li { margin-bottom: 6px; }
-
-        .output-scroll blockquote {
-            margin: 0 0 20px 0;
             padding: 16px;
-            background: var(--warning-bg);
-            border: 1px solid var(--warning-border);
-            border-left: 4px solid #eab308;
-            border-radius: 8px;
-            color: var(--warning-text);
-            font-size: 13px;
-            line-height: 1.5;
-            font-style: normal;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
         }
-        .output-scroll blockquote strong { color: #fef08a; }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(1); }
 
-        /* --- FOOTER --- */
-        .app-footer {
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-subtle);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.2); }
+
+        /* --- MARKDOWN OUTPUT STYLING (The "Legal Doc" Look) --- */
+        .output-content {
+            color: #d4d4d8;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+        
+        .output-content h2, .output-content h3 {
+            color: #fff;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        
+        .output-content h2 { 
+            font-size: 1.4rem; 
+            border-bottom: 1px solid var(--border-subtle); 
+            padding-bottom: 8px;
+        }
+
+        .output-content ul { padding-left: 24px; margin-bottom: 16px; }
+        .output-content li { margin-bottom: 8px; }
+        .output-content strong { color: var(--primary); font-weight: 600; }
+        
+        .output-content blockquote {
+            border-left: 3px solid var(--primary);
+            background: rgba(34, 197, 94, 0.05);
+            margin: 20px 0;
+            padding: 16px;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            font-style: italic;
+            color: #fff;
+        }
+
+        /* Tables (Critical for Sonar-Pro) */
+        .output-content table {
             width: 100%;
-            padding: 32px 20px;
-            background: #0b1121;
-            border-top: 1px solid var(--border);
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+        .output-content th, .output-content td {
+            border: 1px solid var(--border-subtle);
+            padding: 12px;
+            text-align: left;
+        }
+        .output-content th { background: rgba(255,255,255,0.05); color: #fff; }
+        
+        /* Mobile Table Scroll */
+        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        /* --- SKELETON LOADING --- */
+        .skeleton-loader { display: none; flex-direction: column; gap: 16px; margin-top: 20px; }
+        .skeleton-line {
+            height: 16px;
+            background: linear-gradient(90deg, var(--bg-input) 25%, #3f3f46 50%, var(--bg-input) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+        }
+        .w-100 { width: 100%; }
+        .w-80 { width: 80%; }
+        .w-60 { width: 60%; }
+        
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* --- TOAST NOTIFICATION --- */
+        #toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            padding: 12px 24px;
+            border-radius: 99px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 100;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+        #toast i { color: var(--primary); }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-muted);
             text-align: center;
+            padding: 40px;
+            opacity: 0.5;
         }
-        .disclaimer-text {
-            max-width: 700px;
-            margin: 0 auto;
-            font-size: 12px;
-            color: #475569;
-            line-height: 1.6;
-        }
-        .disclaimer-text strong { color: #64748b; }
-
-        /* --- ANIMAÇÕES --- */
-        .spinner {
-            width: 20px; height: 20px;
-            border: 2px solid rgba(255,255,255,0.1);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .empty-icon { font-size: 3rem; margin-bottom: 16px; filter: grayscale(1); }
 
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo-pill">✨ Termos Claros AI</div>
-        <h1>Traduz o "Legalês"<br>para Português Claro.</h1>
-        <p class="hero-desc">
-            Cola os Termos & Condições de qualquer site ou app. A nossa IA destaca os riscos, 
-            os teus direitos e o uso de dados, sem complicações.
-        </p>
-    </header>
+    <!-- Toast Notification -->
+    <div id="toast">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span id="toastMsg">Texto copiado!</span>
+    </div>
 
-    <main class="main-container">
-        
-        <section class="glass-card">
-            <div class="card-header">
-                <span class="card-title">1. Configuração & Texto</span>
-                <button id="btnExample" class="btn-text">Inserir exemplo</button>
-            </div>
+    <div class="app-wrapper">
+        <header>
+            <div class="badge">v2.0 Sonar Pro</div>
+            <h1>Termos Claros AI</h1>
+            <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto; line-height: 1.6;">
+                Traduz o "legalês" confuso para Português claro em segundos.
+                Analisa riscos, dados e direitos com a precisão do modelo Sonar Pro.
+            </p>
+        </header>
 
-            <label for="styleSelect">Estilo do Resumo</label>
-            <select id="styleSelect">
-                <option value="curto">Resumo Curto & Direto (Recomendado)</option>
-                <option value="detalhado">Explicação Detalhada por Tópicos</option>
-                <option value="el5">Ultra Simples (Explicado a uma criança)</option>
-                <option value="riscos">Apenas Riscos e Perigos 🚩</option>
-                <option value="custom">✨ Personalizado</option>
-            </select>
-
-            <div id="customInputWrapper">
-                <input type="text" id="customPrompt" placeholder="Ex: 'Quais são as regras de cancelamento?'">
-            </div>
-
-            <label for="termsInput" style="margin-top: 16px;">Documento Jurídico</label>
-            <textarea id="termsInput" placeholder="Cola aqui o texto..."></textarea>
+        <main class="main-grid">
             
-            <button class="btn-primary" id="btnSummarize">
-                <span>Analisar Documento</span>
-            </button>
-        </section>
-
-        <section class="glass-card">
-            <div class="card-header">
-                <span class="card-title">
-                    <span class="status-dot" id="statusDot" style="background:var(--text-muted); box-shadow:none;"></span>
-                    <span id="statusLabel">Resultado</span>
-                </span>
-                <button class="btn-icon" id="btnCopy" title="Copiar para área de transferência">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    <span id="copyText">Copiar</span>
-                </button>
-            </div>
-
-            <div class="output-scroll" id="output">
-                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; color:var(--text-muted); text-align:center; opacity:0.6;">
-                    <div style="font-size:40px; margin-bottom:12px; filter:grayscale(1);">📄</div>
-                    <p style="margin:0; font-size:14px;">O resumo aparecerá aqui.</p>
+            <!-- LEFT COLUMN: INPUT -->
+            <section class="card input-section">
+                <div class="card-header">
+                    <div class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        Documento
+                    </div>
+                    <button id="btnExample" class="btn-ghost">Usar Exemplo</button>
                 </div>
-            </div>
-        </section>
 
-    </main>
+                <div class="form-group">
+                    <label for="styleSelect">Nível de Análise</label>
+                    <select id="styleSelect">
+                        <option value="curto">Resumo Executivo (Bullet Points)</option>
+                        <option value="detalhado">Análise Jurídica Detalhada</option>
+                        <option value="el5">Explicado a uma Criança (Simples)</option>
+                        <option value="riscos">Apenas Riscos Críticos 🚩</option>
+                        <option value="custom">Prompt Personalizado...</option>
+                    </select>
+                </div>
 
-    <footer class="app-footer">
-        <div class="disclaimer-text">
-            <strong>AVISO LEGAL:</strong><br>
-            Esta ferramenta utiliza Inteligência Artificial (Perplexity Sonar) para processar e resumir textos. 
-            Embora nos esforcemos pela precisão, a IA pode cometer erros ou alucinações. 
-            O conteúdo gerado é meramente informativo e <strong>não constitui aconselhamento jurídico</strong>. 
-            Para situações legais reais, consulte sempre um advogado qualificado. 
-            Os seus dados de input não são armazenados permanentemente.
-        </div>
-    </footer>
+                <!-- Custom Prompt Hidden Area -->
+                <div id="customInputWrapper">
+                    <div>
+                        <div class="form-group">
+                            <input type="text" id="customPrompt" placeholder="Ex: 'O que diz sobre cancelamento?'">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="flex-grow: 1; display: flex; flex-direction: column;">
+                    <label for="termsInput">Cola aqui o texto legal</label>
+                    <textarea id="termsInput" placeholder="Ex: Termos de Uso, Política de Privacidade..."></textarea>
+                    <div class="char-counter" id="charCounter">0 / 200,000</div>
+                </div>
+
+                <button id="btnSummarize" class="btn-primary">
+                    <span>Analisar com IA</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                </button>
+            </section>
+
+            <!-- RIGHT COLUMN: OUTPUT -->
+            <section class="card output-section">
+                <div class="card-header">
+                    <div class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                        Análise
+                    </div>
+                    <button id="btnCopy" class="btn-ghost" title="Copiar">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state">
+                    <div class="empty-icon">⚖️</div>
+                    <p>O resultado da análise aparecerá aqui.<br>A IA irá estruturar os pontos críticos.</p>
+                </div>
+
+                <!-- Skeleton Loader -->
+                <div id="skeletonLoader" class="skeleton-loader">
+                    <div class="skeleton-line w-60"></div>
+                    <div class="skeleton-line w-100"></div>
+                    <div class="skeleton-line w-100"></div>
+                    <div class="skeleton-line w-80"></div>
+                    <br>
+                    <div class="skeleton-line w-60"></div>
+                    <div class="skeleton-line w-100"></div>
+                    <div class="skeleton-line w-100"></div>
+                </div>
+
+                <!-- Real Output -->
+                <div id="outputContent" class="output-content"></div>
+
+            </section>
+        </main>
+
+        <footer style="text-align: center; color: var(--text-muted); font-size: 0.75rem; padding-bottom: 40px; opacity: 0.6;">
+            <p><strong>Aviso Legal:</strong> Ferramenta informativa automatizada. Não substitui aconselhamento jurídico profissional.<br>Os dados não são armazenados.</p>
+        </footer>
+    </div>
 
     <script>
-        const btnSummarize = document.getElementById('btnSummarize');
-        const termsInput = document.getElementById('termsInput');
-        const styleSelect = document.getElementById('styleSelect');
-        const outputDiv = document.getElementById('output');
-        const customWrapper = document.getElementById('customInputWrapper');
-        const customPrompt = document.getElementById('customPrompt');
-        const btnCopy = document.getElementById('btnCopy');
-        const copyText = document.getElementById('copyText');
-        const btnExample = document.getElementById('btnExample');
-        const statusDot = document.getElementById('statusDot');
-        const statusLabel = document.getElementById('statusLabel');
+        // DOM Elements
+        const els = {
+            btnSummarize: document.getElementById('btnSummarize'),
+            termsInput: document.getElementById('termsInput'),
+            styleSelect: document.getElementById('styleSelect'),
+            outputContent: document.getElementById('outputContent'),
+            customWrapper: document.getElementById('customInputWrapper'),
+            customPrompt: document.getElementById('customPrompt'),
+            btnCopy: document.getElementById('btnCopy'),
+            btnExample: document.getElementById('btnExample'),
+            skeleton: document.getElementById('skeletonLoader'),
+            emptyState: document.getElementById('emptyState'),
+            toast: document.getElementById('toast'),
+            toastMsg: document.getElementById('toastMsg'),
+            charCounter: document.getElementById('charCounter')
+        };
 
-        styleSelect.addEventListener('change', () => {
-            if (styleSelect.value === 'custom') {
-                customWrapper.classList.add('visible');
-                setTimeout(() => customPrompt.focus(), 200);
+        // Configuração Marked JS (Para abrir links em nova aba e lidar com quebras de linha)
+        marked.use({
+            breaks: true,
+            gfm: true
+        });
+
+        // --- UX LOGIC ---
+
+        // 1. Toggle Custom Prompt
+        els.styleSelect.addEventListener('change', () => {
+            if (els.styleSelect.value === 'custom') {
+                els.customWrapper.classList.add('open');
+                setTimeout(() => els.customPrompt.focus(), 300);
             } else {
-                customWrapper.classList.remove('visible');
+                els.customWrapper.classList.remove('open');
             }
         });
 
-        btnExample.addEventListener('click', () => {
-            termsInput.value = `TERMOS DE USO FICTÍCIOS - EXEMPLO
-1. DADOS: Ao aceitar, o utilizador concorda que a "Empresa X" pode aceder à câmara do dispositivo a qualquer momento para fins de "melhoria de serviço".
-2. ARBITRAGEM: O utilizador renuncia ao direito de processar a empresa em tribunal ou participar em ações coletivas.
-3. CONTEÚDO: Todo o conteúdo carregado pelo utilizador torna-se propriedade irrevogável da "Empresa X".`;
-            termsInput.style.borderColor = "var(--accent)";
-            termsInput.style.boxShadow = "0 0 0 2px var(--accent-glow)";
-            setTimeout(() => {
-                termsInput.style = "";
-            }, 600);
+        // 2. Character Counter
+        els.termsInput.addEventListener('input', () => {
+            const len = els.termsInput.value.length;
+            els.charCounter.textContent = `${len.toLocaleString()} / 200,000`;
+            if (len > 200000) els.charCounter.classList.add('limit');
+            else els.charCounter.classList.remove('limit');
         });
 
-        btnCopy.addEventListener('click', () => {
-            if (!outputDiv.innerText || outputDiv.innerText.includes("O resumo aparecerá aqui")) return;
-
-            navigator.clipboard.writeText(outputDiv.innerText).then(() => {
-                const originalText = copyText.textContent;
-                copyText.textContent = "Copiado!";
-                btnCopy.style.borderColor = "var(--accent)";
-                btnCopy.style.color = "#fff";
-                setTimeout(() => {
-                    copyText.textContent = originalText;
-                    btnCopy.style = "";
-                }, 2000);
-            });
+        // 3. Example Injector
+        els.btnExample.addEventListener('click', () => {
+            const exampleText = `TERMOS DE USO (EXEMPLO FICTÍCIO)
+1. DADOS: Ao aceitar, o utilizador concorda que a "Empresa X" pode monitorizar a localização do dispositivo 24/7 para fins de marketing.
+2. VINCULAÇÃO: O utilizador renuncia ao direito de ação judicial coletiva.
+3. CONTEÚDO: Todo o conteúdo gerado pelo utilizador na plataforma torna-se propriedade exclusiva da Empresa X.
+4. RESCISÃO: O cancelamento antecipado implica uma multa de 500€.`;
+            
+            els.termsInput.value = exampleText;
+            els.termsInput.dispatchEvent(new Event('input')); // Trigger counter update
+            els.termsInput.focus();
+            showToast("Exemplo inserido!", "info");
         });
+
+        // 4. Toast Notification System
+        function showToast(msg, type = "success") {
+            els.toastMsg.textContent = msg;
+            els.toast.style.borderColor = type === "error" ? "#ef4444" : "rgba(34, 197, 94, 0.5)";
+            els.toast.classList.add('show');
+            setTimeout(() => els.toast.classList.remove('show'), 3000);
+        }
+
+        // 5. Copy Function
+        els.btnCopy.addEventListener('click', () => {
+            const text = els.outputContent.innerText;
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => showToast("Análise copiada!"));
+        });
+
+        // --- CORE API LOGIC ---
 
         async function summarize() {
-            const text = termsInput.value.trim();
+            const text = els.termsInput.value.trim();
+            
             if (!text) {
-                termsInput.style.borderColor = "#ef4444";
-                termsInput.placeholder = "⚠️ Erro: Cola o texto aqui primeiro.";
-                setTimeout(() => {
-                    termsInput.style.borderColor = "";
-                    termsInput.placeholder = "Cola aqui o texto...";
-                }, 2500);
+                showToast("Por favor, insere algum texto primeiro.", "error");
+                els.termsInput.focus();
                 return;
             }
 
-            btnSummarize.disabled = true;
-            btnSummarize.innerHTML = '<div class="spinner"></div> Processando...';
-            statusDot.style.background = "var(--accent)";
-            statusDot.style.boxShadow = "0 0 8px var(--accent)";
-            statusLabel.innerText = "A pensar...";
-
-            outputDiv.innerHTML = `
-                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; color:var(--text-muted); gap:15px;">
-                    <div class="spinner" style="border-color:rgba(255,255,255,0.1); border-top-color:var(--accent); width:30px; height:30px;"></div>
-                    <div style="font-size:13px; animation:fadeIn 1s infinite alternate;">A ler documento...</div>
-                </div>
-            `;
+            // UI State: Loading
+            els.btnSummarize.disabled = true;
+            els.btnSummarize.innerHTML = `<svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg> A analisar...`;
+            els.emptyState.style.display = 'none';
+            els.outputContent.innerHTML = '';
+            els.skeleton.style.display = 'flex';
 
             try {
                 const res = await fetch('/api/summarize', {
@@ -458,38 +552,42 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         terms_text: text,
-                        style: styleSelect.value,
-                        custom_prompt: customPrompt.value
+                        style: els.styleSelect.value,
+                        custom_prompt: els.customPrompt.value
                     })
                 });
 
                 const data = await res.json();
+
                 if (data.error) throw new Error(data.error);
 
-                outputDiv.innerHTML = DOMPurify.sanitize(marked.parse(data.summary));
-                statusLabel.innerText = "Resumo Pronto";
+                // Process Markdown
+                const rawHtml = marked.parse(data.summary);
+                
+                // Sanitize (Security)
+                const cleanHtml = DOMPurify.sanitize(rawHtml);
+
+                // Render
+                els.outputContent.innerHTML = cleanHtml;
+                showToast("Análise concluída!");
 
             } catch (err) {
-                statusDot.style.background = "#ef4444";
-                statusDot.style.boxShadow = "0 0 8px #ef4444";
-                statusLabel.innerText = "Erro";
-                outputDiv.innerHTML = `
-                    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; color:#ef4444; text-align:center;">
-                        <div style="font-size:30px; margin-bottom:10px;">⚠️</div>
-                        <strong>Ocorreu um erro</strong>
-                        <p style="font-size:13px; margin-top:5px; color:var(--text-muted);">${err.message}</p>
+                console.error(err);
+                showToast(err.message || "Erro na conexão", "error");
+                els.outputContent.innerHTML = `
+                    <div style="color:#ef4444; padding:20px; border:1px solid #ef4444; border-radius:8px; background:rgba(239,68,68,0.1);">
+                        <strong>Ocorreu um erro:</strong><br>${err.message}
                     </div>
                 `;
             } finally {
-                btnSummarize.disabled = false;
-                btnSummarize.innerHTML = '<span>Analisar Documento</span>';
+                // UI State: Reset
+                els.skeleton.style.display = 'none';
+                els.btnSummarize.disabled = false;
+                els.btnSummarize.innerHTML = `<span>Analisar com IA</span> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>`;
             }
         }
 
-        btnSummarize.addEventListener('click', summarize);
-        termsInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) summarize();
-        });
+        els.btnSummarize.addEventListener('click', summarize);
     </script>
 </body>
 </html>
