@@ -1,330 +1,366 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Termos Claros | IA Sonar</title>
+    <meta charset="UTF-8" />
+    <title>Termos Claros – Explica T&C com IA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Ferramenta simples que lê e explica Termos & Condições." />
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
-    
+
     <style>
+        /* --- MANTIVE O TEU CSS ORIGINAL --- */
         :root {
-            --bg: #111827;       /* Fundo quase preto */
-            --panel: #1f2937;    /* Cinzento escuro */
-            --border: #374151;   /* Bordas */
-            --primary: #22d3ee;  /* Azul Cyan Sonar/Perplexity */
-            --primary-hover: #06b6d4;
-            --text: #f3f4f6;     /* Texto claro */
-            --muted: #9ca3af;    /* Texto secundário */
-            --error: #ef4444;
+            --bg: #020617;
+            --bg-alt: #0b1220;
+            --surface: #020617;
+            --accent: #22c55e;
+            --accent-soft: rgba(34, 197, 94, 0.14);
+            --accent-strong: #16a34a;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: #1f2937;
+            --error: #f97373;
+            --radius-lg: 18px;
+            --radius-md: 10px;
+            --shadow-lg: 0 32px 90px rgba(15, 23, 42, 0.9);
+            --shadow-md: 0 16px 50px rgba(15, 23, 42, 0.8);
         }
 
         * { box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
             margin: 0;
+            min-height: 100vh;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1d2436 0, #020617 52%, #020617 100%);
+            color: var(--text);
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            overflow: hidden; /* Evita scroll duplo */
         }
 
-        /* Cabeçalho */
-        header {
-            padding: 15px 25px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--bg);
-        }
+        a { color: inherit; text-decoration: none; }
 
-        .brand {
-            font-size: 1.4rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .brand span { color: var(--primary); }
+        /* NAVBAR */
+        .nav { max-width: 1120px; margin: 0 auto; padding: 14px 20px 10px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-left { display: flex; align-items: center; gap: 10px; }
+        .logo-mark { width: 26px; height: 26px; border-radius: 9px; background: radial-gradient(circle at 30% 0, #22c55e 0, #16a34a 36%, #22c55e 100%); box-shadow: 0 0 18px rgba(34, 197, 94, 0.85); display: flex; align-items: center; justify-content: center; color: #020617; font-weight: 700; font-size: 15px; }
+        .logo-text-main { font-weight: 600; letter-spacing: 0.03em; font-size: 16px; }
+        .logo-text-sub { font-size: 11px; color: var(--muted); }
+        .nav-right { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--muted); }
+        .nav-pill { padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(55, 65, 81, 0.9); background: rgba(15, 23, 42, 0.9); }
 
-        .model-badge {
-            background: rgba(34, 211, 238, 0.1);
-            color: var(--primary);
-            border: 1px solid rgba(34, 211, 238, 0.2);
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            border-radius: 99px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        /* PAGE LAYOUT */
+        .page { max-width: 1120px; margin: 0 auto 40px; padding: 0 20px 40px; }
 
-        /* Layout Principal */
-        .main-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0;
-            flex: 1;
-            height: calc(100vh - 70px);
-        }
+        /* HERO */
+        .hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 26px; margin-top: 10px; margin-bottom: 24px; align-items: center; }
+        .hero-text h1 { margin: 0 0 8px; font-size: clamp(26px, 3.2vw, 32px); letter-spacing: 0.01em; }
+        .hero-text p { margin: 0; font-size: 14px; color: var(--muted); max-width: 520px; }
+        .hero-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+        .hero-badge { font-size: 11px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(55, 65, 81, 0.9); background: rgba(15, 23, 42, 0.95); color: var(--muted); }
+        .hero-highlight { color: var(--accent); font-weight: 500; }
+        .hero-card { border-radius: 22px; padding: 14px 14px 12px; background: radial-gradient(circle at 0 0, rgba(34, 197, 94, 0.2) 0, transparent 55%), #020617; border: 1px solid rgba(31, 41, 55, 0.95); box-shadow: var(--shadow-md); font-size: 12px; }
+        .hero-card-title { font-size: 12px; margin-bottom: 4px; color: var(--muted); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+        .hero-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 10px rgba(34, 197, 94, 0.9); }
+        .hero-conv { margin-top: 6px; border-radius: 12px; border: 1px solid rgba(51, 65, 85, 0.95); background: rgba(15, 23, 42, 0.96); padding: 8px 10px; }
+        .hero-bubble { display: inline-block; margin-bottom: 4px; padding: 6px 10px; border-radius: 14px; font-size: 12px; line-height: 1.4; max-width: 100%; }
+        .hero-bubble.user { background: #020617; border: 1px solid rgba(55, 65, 81, 0.95); align-self: flex-end; }
+        .hero-bubble.bot { background: #022c22; border: 1px solid rgba(34, 197, 94, 0.65); color: #bbf7d0; }
+        .hero-note { font-size: 10px; color: var(--muted); margin-top: 4px; }
 
-        @media (max-width: 768px) {
-            .main-container { grid-template-columns: 1fr; height: auto; overflow-y: auto; }
-            body { overflow: auto; }
-        }
+        /* MAIN TOOL */
+        .tool { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr); gap: 18px; }
+        @media (max-width: 880px) { .hero { grid-template-columns: minmax(0, 1fr); } .tool { grid-template-columns: minmax(0, 1fr); } }
 
-        /* Painéis (Esquerda e Direita) */
-        .panel {
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid var(--border);
-            position: relative;
-        }
-        .panel:last-child { border-right: none; }
+        .pane { background: var(--surface); border-radius: 20px; padding: 16px 16px 14px; border: 1px solid rgba(31, 41, 55, 0.95); box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
+        .pane--right { background: radial-gradient(circle at 100% 0, rgba(34, 197, 94, 0.18) 0, transparent 55%), #020617; }
+        .pane-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+        .pane-header h2 { margin: 0; font-size: 14px; font-weight: 500; }
+        .pane-header small { font-size: 11px; color: var(--muted); }
+        
+        label { font-size: 12px; color: var(--muted); margin-bottom: 4px; display: block; }
+        select, input[type="text"] { width: 100%; padding: 7px 10px; border-radius: 10px; border: 1px solid rgba(75, 85, 99, 0.9); background: #020617; color: var(--text); font-size: 13px; outline: none; }
+        
+        textarea { width: 100%; min-height: 210px; max-height: 340px; resize: vertical; padding: 9px 10px; border-radius: 10px; border: 1px solid rgba(55, 65, 81, 0.95); background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9) 0, #020617 52%); color: var(--text); font-size: 13px; line-height: 1.45; outline: none; }
+        textarea::placeholder { color: rgba(148, 163, 184, 0.65); }
+        .hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-        .panel-header {
-            padding: 12px 20px;
-            background: rgba(31, 41, 55, 0.5);
-            border-bottom: 1px solid var(--border);
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--muted);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; font-size: 11px; color: var(--muted); }
+        .chip { padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(55, 65, 81, 0.85); background: rgba(15, 23, 42, 0.9); }
 
-        /* Área de Texto (Input) */
-        textarea {
-            flex: 1;
-            background: var(--bg);
-            border: none;
-            color: var(--text);
-            padding: 20px;
-            resize: none;
-            font-family: inherit;
-            font-size: 1rem;
-            line-height: 1.6;
-            outline: none;
-        }
-        textarea::placeholder { color: #4b5563; }
-
-        /* Área de Resultado (Output) */
-        .result-content {
-            flex: 1;
-            padding: 20px 30px;
-            overflow-y: auto;
-            background: #131b2c; /* Ligeiramente diferente para contraste */
-            font-size: 0.95rem;
-            line-height: 1.7;
-        }
-
-        /* Estilização do Markdown gerado */
-        .result-content h3 {
-            color: var(--primary);
-            margin-top: 25px;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-            border-bottom: 1px solid #374151;
-            padding-bottom: 5px;
-        }
-        .result-content h3:first-child { margin-top: 0; }
-        .result-content ul { padding-left: 20px; margin-bottom: 15px; }
-        .result-content li { margin-bottom: 8px; }
-        .result-content strong { color: #fff; font-weight: 700; }
-        .result-content p { margin-bottom: 15px; color: #d1d5db; }
-
-        /* Barra de Controles (Fundo Esquerdo) */
-        .controls {
-            padding: 15px 20px;
-            border-top: 1px solid var(--border);
-            background: var(--panel);
-            display: flex;
-            gap: 10px;
-        }
-
-        select {
-            background: var(--bg);
-            color: var(--text);
-            border: 1px solid var(--border);
-            padding: 10px;
-            border-radius: 6px;
-            outline: none;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        button {
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: #0f172a;
-            flex: 1;
-        }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
-
-        .btn-small {
+        .button { border: none; cursor: pointer; border-radius: 999px; font-size: 13px; font-weight: 500; padding: 7px 16px; display: inline-flex; align-items: center; gap: 7px; background: linear-gradient(135deg, #22c55e, #16a34a); color: #020617; box-shadow: 0 10px 25px rgba(34, 197, 94, 0.55); transition: transform 0.05s ease; }
+        .button:hover { transform: translateY(-1px); filter: brightness(1.03); }
+        .button:active { transform: translateY(0); }
+        .button[disabled] { opacity: 0.6; cursor: default; transform: none; }
+        
+        /* Botão secundário estilo Chip para o "Exemplo" */
+        .button-small {
             background: transparent;
-            border: 1px solid var(--border);
+            border: 1px solid rgba(55, 65, 81, 0.85);
             color: var(--muted);
-            padding: 4px 10px;
-            font-size: 0.75rem;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            cursor: pointer;
         }
-        .btn-small:hover { color: var(--text); border-color: var(--text); }
+        .button-small:hover { color: var(--text); border-color: var(--text); }
 
-        /* Animações */
-        .spinner {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(0,0,0,0.2);
-            border-top-color: #000;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 5px;
-            vertical-align: middle;
-        }
+        .button-icon { width: 14px; height: 14px; border-radius: 999px; background: rgba(15, 23, 42, 0.8); display: inline-flex; align-items: center; justify-content: center; color: #bbf7d0; font-size: 11px; }
+
+        /* OUTPUT */
+        .output-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .status { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+        .status-dot { width: 7px; height: 7px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 7px rgba(34, 197, 94, 0.8); }
+        .output-wrapper { position: relative; flex: 1; min-height: 210px; border-radius: 12px; border: 1px solid rgba(31, 41, 55, 0.95); background: radial-gradient(circle at 0 0, rgba(34, 197, 94, 0.16) 0, transparent 55%), #020617; padding: 10px 11px 10px; overflow: hidden; }
+        .output { height: calc(100% - 4px); overflow-y: auto; padding-right: 4px; font-size: 13px; line-height: 1.6; color: #e5e7eb; }
+        
+        /* ADICIONADO: Estilos para o Markdown dentro do Output */
+        .output h3 { margin-top: 15px; margin-bottom: 5px; color: var(--accent); font-size: 14px; border-bottom: 1px solid rgba(34, 197, 94, 0.2); padding-bottom: 2px; }
+        .output ul { padding-left: 20px; margin: 5px 0; }
+        .output li { margin-bottom: 4px; }
+        .output strong { color: #fff; font-weight: 600; }
+        .output p { margin-bottom: 10px; margin-top: 0; }
+
+        .placeholder-output { font-size: 12px; color: var(--muted); }
+        .loading { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--accent); }
+        .spinner { width: 14px; height: 14px; border: 2px solid rgba(34, 197, 94, 0.25); border-top-color: var(--accent); border-radius: 999px; animation: spin 0.7s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .error { margin-top: 4px; font-size: 11px; color: var(--error); }
 
-        .placeholder-msg {
-            text-align: center;
-            color: var(--muted);
-            margin-top: 50px;
-            font-style: italic;
-        }
+        /* HOW IT WORKS */
+        .how { margin-top: 30px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; font-size: 12px; }
+        @media (max-width: 880px) { .how { grid-template-columns: minmax(0, 1fr); } }
+        .how-card { border-radius: 14px; padding: 10px 11px 10px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(31, 41, 55, 0.95); }
+        .how-title { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+        .footer-note { font-size: 10px; color: var(--muted); margin-top: 6px; text-align: right; }
+        
+        .hero-cta { margin-top: 14px; display: flex; align-items: center; gap: 10px; font-size: 12px; }
+        .hero-cta-button { cursor: pointer; border-radius: 999px; border: 1px solid rgba(55, 65, 81, 0.9); padding: 6px 12px; background: #020617; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text); }
+        .hero-cta-button span:last-child { font-size: 10px; color: var(--muted); }
     </style>
 </head>
-<body>
 
-    <header>
-        <div class="brand">
-            ⚖️ Termos<span>Claros</span>
+<body>
+    <header class="nav">
+        <div class="nav-left">
+            <div class="logo-mark">TC</div>
+            <div>
+                <div class="logo-text-main">Termos Claros</div>
+                <div class="logo-text-sub">Torna o “legalês” legível</div>
+            </div>
         </div>
-        <div class="model-badge">Model: Sonar Large</div>
+        <div class="nav-right">
+            <div class="nav-pill">Powered by Perplexity Sonar</div>
+        </div>
     </header>
 
-    <div class="main-container">
-        <div class="panel">
-            <div class="panel-header">
-                Documento Original
-                <button class="btn-small" id="btnExample">Inserir Exemplo</button>
-            </div>
-            <textarea id="inputText" placeholder="Cola aqui o texto dos Termos & Condições que queres analisar..."></textarea>
-            <div class="controls">
-                <select id="styleSelect">
-                    <option value="claro e direto">Estilo: Simples</option>
-                    <option value="explicacao detalhada">Estilo: Detalhado</option>
-                    <option value="focado em riscos">Estilo: Focado em Riscos</option>
-                    <option value="para leigos">Estilo: "Explica-me como se tivesse 5 anos"</option>
-                </select>
-                <button class="btn-primary" id="btnSubmit">Gerar Resumo</button>
-            </div>
-        </div>
-
-        <div class="panel">
-            <div class="panel-header">
-                Análise da IA
-                <button class="btn-small" id="btnCopy" style="display:none;">Copiar Texto</button>
-            </div>
-            <div id="outputContent" class="result-content">
-                <div class="placeholder-msg">
-                    O resumo aparecerá aqui.<br>
-                    Cola um texto à esquerda e clica em "Gerar Resumo".
+    <main class="page">
+        <section class="hero">
+            <div class="hero-text">
+                <h1>Lê os Termos &amp; Condições <span class="hero-highlight">sem sofrer</span>.</h1>
+                <p>
+                    Cola o texto chato, escolhe o estilo da resposta e deixa a IA explicar em português claro
+                    o que estás realmente a aceitar – direitos, obrigações, dados e riscos.
+                </p>
+                <div class="hero-badges">
+                    <div class="hero-badge">✔ Linguagem simples</div>
+                    <div class="hero-badge">✔ Destaca riscos importantes</div>
+                    <div class="hero-badge">✔ Análise via Perplexity AI</div>
+                </div>
+                <div class="hero-cta">
+                    <button type="button" class="hero-cta-button" id="scrollToTool">
+                        <span>Começar já a resumir</span>
+                        <span>Ctrl+Enter para enviar</span>
+                    </button>
                 </div>
             </div>
-        </div>
-    </div>
+            <aside class="hero-card" aria-hidden="true">
+                <div class="hero-card-title">
+                    <span class="hero-dot"></span> Vista rápida do que o bot faz
+                </div>
+                <div class="hero-conv">
+                    <div class="hero-bubble user">Não percebo estes termos enormes. O que estou a aceitar?</div>
+                    <div class="hero-bubble bot">
+                        Vou ler tudo e devolver-te um resumo claro: o que recolhem sobre ti, para que usam e o que pode correr mal.
+                    </div>
+                </div>
+                <p class="hero-note">O objetivo não é substituir um advogado, mas dar-te uma base.</p>
+            </aside>
+        </section>
+
+        <section class="tool" id="tool">
+            <section class="pane" aria-label="Ferramenta de resumo de termos">
+                <div class="pane-header">
+                    <div>
+                        <h2>1. Escolhe o estilo</h2>
+                        <small>Define como queres que a explicação seja apresentada.</small>
+                    </div>
+                </div>
+                <div style="margin-bottom:8px;">
+                    <select id="style-select">
+                        <option value="resumo direto e curto em linguagem simples">Resumo direto e curto</option>
+                        <option value="explicação detalhada mas clara em linguagem simples">Explicação detalhada</option>
+                        <option value="explicação ultra simples para leigos">Ultra simples (EL5)</option>
+                        <option value="focado em riscos e perigos">Focado apenas nos riscos</option>
+                    </select>
+                </div>
+
+                <div>
+                    <div class="pane-header" style="margin-top:4px;">
+                        <div>
+                            <h2>2. Cola os Termos &amp; Condições</h2>
+                            <small>Texto de um site, app ou serviço online.</small>
+                        </div>
+                        <button id="btnExample" class="button-small">Inserir Exemplo</button>
+                    </div>
+                    <textarea id="terms" placeholder="Cola aqui o texto de Termos &amp; Condições..."></textarea>
+                    <p class="hint">Evita conteúdos com dados pessoais privados. Usa documentos públicos.</p>
+                </div>
+
+                <div class="actions">
+                    <span class="chip">Resumo automático com IA</span>
+                    <div>
+                        <button class="button" id="btn">
+                            <span class="button-icon">▶</span>
+                            <span>Gerar resumo</span>
+                        </button>
+                    </div>
+                </div>
+                <p class="hint" id="statusText">Pronto para resumir.</p>
+            </section>
+
+            <section class="pane pane--right" aria-label="Resumo gerado">
+                <div class="output-header">
+                    <div>
+                        <h2>3. Lê o resumo</h2>
+                        <small>Explicação em linguagem simples.</small>
+                    </div>
+                    <div class="status">
+                        <span class="status-dot"></span>
+                        <span id="statusLabel">Assistente ativo</span>
+                    </div>
+                </div>
+                <div class="output-wrapper">
+                    <div id="output" class="output">
+                        <p class="placeholder-output">
+                            O resumo vai aparecer aqui. Inclui sempre:<br><br>
+                            • Visão geral<br>
+                            • O que a empresa recolhe<br>
+                            • Direitos e riscos<br>
+                            • Aviso final
+                        </p>
+                    </div>
+                </div>
+                <div id="error" class="error" style="display:none;"></div>
+                <p class="footer-note">Não substitui aconselhamento jurídico profissional.</p>
+            </section>
+        </section>
+
+        <section class="how" aria-label="Como funciona">
+            <article class="how-card">
+                <div class="how-title">1. Cola o texto</div>
+                <p>Copia Termos &amp; Condições de um site ou app e cola no campo. Quanto mais relevante for o excerto, melhor.</p>
+            </article>
+            <article class="how-card">
+                <div class="how-title">2. IA Analisa</div>
+                <p>O modelo Sonar (Llama 3.1) lê o texto, identifica padrões abusivos e traduz o "legalês".</p>
+            </article>
+            <article class="how-card">
+                <div class="how-title">3. Lê com calma</div>
+                <p>O resumo mostra os pontos que mais interessam: dados, direitos e riscos.</p>
+            </article>
+        </section>
+    </main>
 
     <script>
-        const inputText = document.getElementById('inputText');
-        const outputContent = document.getElementById('outputContent');
-        const btnSubmit = document.getElementById('btnSubmit');
-        const btnExample = document.getElementById('btnExample');
-        const btnCopy = document.getElementById('btnCopy');
-        const styleSelect = document.getElementById('styleSelect');
+        const btn = document.getElementById("btn");
+        const termsEl = document.getElementById("terms");
+        const styleSelectEl = document.getElementById("style-select");
+        const outputEl = document.getElementById("output");
+        const errorEl = document.getElementById("error");
+        const statusLabel = document.getElementById("statusLabel");
+        const statusText = document.getElementById("statusText");
+        const scrollToToolBtn = document.getElementById("scrollToTool");
+        const toolSection = document.getElementById("tool");
+        const btnExample = document.getElementById("btnExample");
 
-        // Texto de exemplo para testar rápido
-        const EXAMPLE_TEXT = `POLÍTICA DE PRIVACIDADE (EXEMPLO)
-        1. RECOLHA DE DADOS: Recolhemos o seu nome, email, localização GPS precisa e histórico de navegação. 
-        2. PARTILHA: Os seus dados podem ser vendidos a "parceiros selecionados" para fins de marketing direto.
-        3. RENÚNCIA: Ao usar este serviço, renuncia ao direito de participar em ações coletivas contra nós.
-        4. CONTEÚDO: Tudo o que publica na nossa plataforma torna-se nossa propriedade perpétua e irrevogável.`;
+        // FUNCIONALIDADE 1: Scroll
+        if (scrollToToolBtn && toolSection) {
+            scrollToToolBtn.addEventListener("click", () => {
+                toolSection.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+        }
 
-        // Botão "Inserir Exemplo"
-        btnExample.addEventListener('click', () => {
-            inputText.value = EXAMPLE_TEXT;
-            inputText.focus();
+        // FUNCIONALIDADE 2: Botão Exemplo
+        btnExample.addEventListener("click", () => {
+            termsEl.value = `TERMOS DE USO FICTÍCIOS "APP FANTASMA"
+1. DADOS: Ao usar esta app, concordas que podemos aceder ao teu microfone 24/7 e vender as tuas conversas a parceiros de publicidade.
+2. CONTEÚDO: Todas as fotos que publicares passam a ser nossas e podemos usá-las em anúncios sem te pagar.
+3. RISCOS: Não nos responsabilizamos se a tua conta for roubada.
+4. LEI: Renuncias ao direito de nos processar em tribunal.`;
+            // Efeito visual
+            termsEl.style.borderColor = "#22c55e";
+            setTimeout(() => termsEl.style.borderColor = "rgba(55, 65, 81, 0.95)", 500);
         });
 
-        // Botão "Gerar Resumo"
-        btnSubmit.addEventListener('click', async () => {
-            const text = inputText.value.trim();
-            
-            if (!text) {
-                alert("Por favor, cola algum texto primeiro.");
+        // FUNCIONALIDADE 3: Gerar Resumo
+        async function summarize() {
+            const terms = termsEl.value.trim();
+            let style = styleSelectEl.value;
+
+            errorEl.style.display = "none";
+            errorEl.textContent = "";
+
+            if (!terms) {
+                errorEl.textContent = "Por favor, cola algum texto de Termos & Condições primeiro.";
+                errorEl.style.display = "block";
                 return;
             }
 
-            // UI Loading
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = '<span class="spinner"></span> A Analisar...';
-            outputContent.innerHTML = '<div class="placeholder-msg">A IA está a ler o documento...</div>';
-            btnCopy.style.display = 'none';
+            btn.disabled = true;
+            statusLabel.textContent = "A processar";
+            statusText.textContent = "A analisar texto com Perplexity AI...";
+            outputEl.innerHTML = '<div class="loading"><div class="spinner"></div><span>A gerar resumo...</span></div>';
 
             try {
-                const response = await fetch('/api/summarize', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        terms_text: text,
-                        style: styleSelect.value
-                    })
+                const resp = await fetch("/api/summarize", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ terms_text: terms, style })
                 });
 
-                const data = await response.json();
+                const data = await resp.json();
 
-                if (data.error) {
-                    outputContent.innerHTML = `<div style="color:var(--error); text-align:center; margin-top:20px;"><strong>Erro:</strong> ${data.error}</div>`;
-                } else {
-                    // Renderizar Markdown
-                    // 1. marked.parse converte MD para HTML
-                    // 2. DOMPurify limpa scripts maliciosos
-                    const cleanHtml = DOMPurify.sanitize(marked.parse(data.summary));
-                    outputContent.innerHTML = cleanHtml;
-                    btnCopy.style.display = 'block';
+                if (!resp.ok) {
+                    throw new Error(data.error || "Erro no servidor.");
                 }
 
-            } catch (err) {
-                console.error(err);
-                outputContent.innerHTML = `<div style="color:var(--error); text-align:center;">Falha na ligação ao servidor.</div>`;
+                // MELHORIA: Renderização do Markdown
+                const cleanHTML = DOMPurify.sanitize(marked.parse(data.summary));
+                outputEl.innerHTML = cleanHTML;
+                
+                statusLabel.textContent = "Resumo gerado";
+                statusText.textContent = "Sucesso.";
+            } catch (e) {
+                console.error(e);
+                errorEl.textContent = "Erro: " + e.message;
+                errorEl.style.display = "block";
+                outputEl.innerHTML = "";
+                statusLabel.textContent = "Erro";
             } finally {
-                btnSubmit.disabled = false;
-                btnSubmit.textContent = 'Gerar Resumo';
+                btn.disabled = false;
             }
-        });
+        }
 
-        // Botão Copiar
-        btnCopy.addEventListener('click', () => {
-            const text = outputContent.innerText; // Copia texto limpo, sem tags HTML
-            navigator.clipboard.writeText(text).then(() => {
-                const original = btnCopy.textContent;
-                btnCopy.textContent = "Copiado!";
-                setTimeout(() => btnCopy.textContent = original, 2000);
-            });
+        btn.addEventListener("click", summarize);
+
+        termsEl.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                summarize();
+            }
         });
     </script>
 </body>
