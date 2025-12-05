@@ -3,232 +3,205 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <title>Termos Claros | AI Legal</title>
+    <title>Termos Claros – IA Jurídica</title>
     
-    <!-- Fonts Premium -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%2322c55e'/><text x='50' y='70' font-family='system-ui, sans-serif' font-weight='900' font-size='65' fill='%23020617' text-anchor='middle'>TC</text></svg>">
     
     <!-- Libs -->
-    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        /* --- COSMIC THEME --- */
+        /* --- DESIGN SYSTEM --- */
         :root {
-            --bg: #030712;       /* Almost Black */
-            --card: #111827;     /* Dark Grey */
-            --input: #1f2937;
-            --primary: #6366f1;  /* Indigo */
-            --primary-glow: rgba(99, 102, 241, 0.5);
-            --accent: #ec4899;   /* Pink */
-            --text-main: #f9fafb;
-            --text-muted: #9ca3af;
-            --border: rgba(255,255,255,0.08);
+            color-scheme: dark;
+            --bg-deep: #020617;
+            --surface-glass: rgba(15, 23, 42, 0.75);
+            --border: rgba(148, 163, 184, 0.1);
+            --accent: #22c55e;
+            --accent-glow: rgba(34, 197, 94, 0.2);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
             --radius: 16px;
         }
 
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 
         body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            font-family: 'Outfit', sans-serif;
-            margin: 0; min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center;
-            overflow-x: hidden;
-            /* Background Glow Effect */
+            margin: 0; font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-deep);
             background-image: 
-                radial-gradient(circle at 15% 0%, rgba(99, 102, 241, 0.15), transparent 40%),
-                radial-gradient(circle at 85% 100%, rgba(236, 72, 153, 0.1), transparent 40%);
+                radial-gradient(circle at 15% 15%, rgba(34, 197, 94, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(56, 189, 248, 0.08) 0%, transparent 45%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center;
         }
 
         /* HEADER */
-        header { text-align: center; padding: 60px 20px 40px; max-width: 800px; animation: slideDown 0.8s ease-out; }
-        
-        .badge {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3);
-            color: #a5b4fc; padding: 6px 12px; border-radius: 99px; font-size: 12px; font-weight: 600;
-            margin-bottom: 20px; letter-spacing: 0.5px;
+        header { text-align: center; padding: 40px 20px 20px; max-width: 700px; animation: fadeIn 0.8s ease-out; }
+        .logo-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
+            padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 600;
+            color: var(--accent); margin-bottom: 16px; backdrop-filter: blur(5px);
         }
-        
-        h1 {
-            font-size: clamp(36px, 6vw, 52px); margin: 0; line-height: 1.1; font-weight: 700;
-            background: linear-gradient(135deg, #fff 30%, #9ca3af 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        .subtitle { color: var(--text-muted); font-size: 18px; margin-top: 16px; font-weight: 300; }
+        h1 { margin: 0; font-size: clamp(32px, 5vw, 42px); letter-spacing: -1px; line-height: 1.3; background: linear-gradient(to bottom right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* MAIN CONTAINER */
-        .container {
-            width: 100%; max-width: 1000px; padding: 0 20px; display: grid; gap: 30px; margin-bottom: 60px;
+        /* MAIN LAYOUT */
+        .main-container {
+            width: 100%; max-width: 1100px; padding: 0 20px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+            margin-bottom: 40px; flex-grow: 1; align-items: start;
         }
+        @media (max-width: 900px) { .main-container { grid-template-columns: 1fr; } }
+        @media (min-width: 901px) { .glass-card:first-child { position: sticky; top: 20px; } }
 
-        /* CARD SYSTEM */
+        /* CARDS */
         .glass-card {
-            background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(20px);
-            border: 1px solid var(--border); border-radius: var(--radius); padding: 32px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            position: relative; overflow: hidden; transition: 0.3s;
+            background: var(--surface-glass); backdrop-filter: blur(20px);
+            border: 1px solid var(--border); border-radius: var(--radius); padding: 24px;
+            display: flex; flex-direction: column; min-height: 520px; 
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5); transition: 0.3s;
         }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+        .card-title { font-weight: 600; font-size: 15px; color: #fff; }
 
-        /* TABS */
-        .tabs { display: flex; gap: 8px; margin-bottom: 24px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; width: fit-content; }
+        /* TABS (Texto vs PDF) */
+        .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
         .tab-btn {
-            background: transparent; border: none; color: var(--text-muted); padding: 8px 20px;
-            border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s;
+            background: rgba(255,255,255,0.05); border: 1px solid transparent; color: var(--text-muted);
+            padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; flex: 1; transition: 0.2s;
         }
-        .tab-btn.active { background: var(--input); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .tab-btn.active { background: rgba(34, 197, 94, 0.1); color: #fff; border-color: var(--accent); }
 
         /* INPUTS */
         textarea {
-            width: 100%; min-height: 250px; background: var(--input); border: 1px solid var(--border);
-            border-radius: 12px; padding: 20px; color: #fff; font-family: 'JetBrains Mono', monospace;
-            font-size: 14px; line-height: 1.6; resize: none; transition: 0.2s;
+            width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border);
+            color: var(--text-main); border-radius: 12px; padding: 14px; font-size: 14px;
+            flex-grow: 1; min-height: 200px; resize: none; line-height: 1.6; transition: 0.2s;
         }
-        textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+        textarea:focus { border-color: var(--accent); outline: none; }
 
+        /* PDF DROP ZONE */
         .drop-zone {
-            border: 2px dashed var(--border); border-radius: 12px; padding: 60px 20px;
-            text-align: center; cursor: pointer; background: rgba(255,255,255,0.02); transition: 0.2s;
-            display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+            border: 2px dashed var(--border); border-radius: 12px; padding: 40px; text-align: center;
+            background: rgba(0,0,0,0.2); cursor: pointer; transition: 0.2s; display: none;
+            flex-grow: 1; align-items: center; justify-content: center; flex-direction: column;
         }
-        .drop-zone:hover { border-color: var(--primary); background: rgba(99, 102, 241, 0.05); }
         .drop-zone.visible { display: flex; }
+        .drop-zone:hover { border-color: var(--accent); background: rgba(34, 197, 94, 0.05); }
+        .file-info { margin-top: 10px; font-size: 13px; color: var(--accent); font-weight: 600; }
 
-        /* CONTROLS GRID */
-        .controls { display: grid; grid-template-columns: 1fr auto; gap: 20px; margin-top: 24px; align-items: end; }
-        
         select {
-            width: 100%; background: var(--input); color: #fff; border: 1px solid var(--border);
-            padding: 14px; border-radius: 12px; cursor: pointer; font-family: inherit; font-size: 14px;
+            width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border);
+            color: var(--text-main); border-radius: 12px; padding: 12px; margin-top: 10px;
         }
 
-        /* PRIMARY BUTTON */
+        /* BUTTONS */
         .btn-primary {
-            background: var(--primary); color: #fff; border: none; padding: 14px 32px;
-            border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer;
-            display: flex; align-items: center; gap: 10px; transition: 0.3s;
-            box-shadow: 0 0 20px -5px var(--primary-glow);
+            margin-top: 16px; width: 100%; padding: 14px; border: none; border-radius: 12px;
+            background: linear-gradient(135deg, #22c55e, #15803d); color: #fff; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.3); transition: 0.2s;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px -5px var(--primary-glow); }
-        .btn-primary:disabled { opacity: 0.6; cursor: wait; transform: none; box-shadow: none; }
+        .btn-primary:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-primary:disabled { opacity: 0.6; cursor: wait; transform: none; filter: grayscale(1); }
 
-        /* MAGIC EXAMPLE BUTTON */
-        .btn-magic {
-            position: absolute; top: 32px; right: 32px;
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted);
-            padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer;
-            display: flex; align-items: center; gap: 6px; transition: 0.2s;
-        }
-        .btn-magic:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.2); }
+        .btn-text { background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; }
+        .btn-icon { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted); padding: 6px 12px; border-radius: 8px; cursor: pointer; display: flex; gap: 6px; align-items: center; }
 
-        /* LOADING STEPS */
-        .loading-steps { display: none; margin-top: 20px; text-align: center; }
-        .step { font-size: 14px; color: var(--text-muted); opacity: 0.5; margin: 4px 0; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .step.active { color: var(--primary); opacity: 1; font-weight: 500; }
-        .step.done { color: #10b981; opacity: 0.8; }
-
-        /* OUTPUT AREA */
-        .output-area { display: none; animation: slideUp 0.6s ease; }
-        .markdown-body { color: #e5e7eb; line-height: 1.8; font-size: 16px; }
+        /* OUTPUT */
+        .output-scroll { height: 100%; overflow-y: auto; padding-right: 6px; color: #e2e8f0; font-size: 15px; line-height: 1.7; }
+        .output-scroll h2 { color: #fff; margin-top: 20px; font-size: 17px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .output-scroll strong { color: var(--accent); }
+        .output-scroll table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px; background: rgba(0,0,0,0.2); border-radius: 8px; }
+        .output-scroll th { text-align: left; padding: 10px; background: rgba(255,255,255,0.05); color: #fff; }
+        .output-scroll td { padding: 10px; border-top: 1px solid var(--border); color: var(--text-muted); }
         
-        /* Typography Polish */
-        .markdown-body h2 { color: #fff; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 30px; font-weight: 600; }
-        .markdown-body strong { color: #a5b4fc; font-weight: 600; }
-        .markdown-body blockquote { border-left: 3px solid var(--accent); background: rgba(236, 72, 153, 0.1); margin: 20px 0; padding: 16px; border-radius: 0 8px 8px 0; font-style: italic; color: #fbcfe8; }
-        
-        /* Beautiful Tables */
-        .markdown-body table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 24px 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-        .markdown-body th { background: rgba(255,255,255,0.05); color: #fff; padding: 14px; text-align: left; font-weight: 600; }
-        .markdown-body td { padding: 14px; border-top: 1px solid var(--border); color: var(--text-muted); }
-
-        /* Animations */
-        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        /* STATUS */
+        .status-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--text-muted); }
+        .status-msg { font-size: 13px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .spinner { width: 24px; height: 24px; border: 2px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
-        /* Footer */
-        footer { margin-top: 40px; color: var(--text-muted); font-size: 12px; text-align: center; padding-bottom: 40px; }
+
+        /* FOOTER (Simple Text) */
+        .simple-footer {
+            width: 100%; padding: 30px 20px; border-top: 1px solid var(--border);
+            text-align: center; color: #64748b; font-size: 13px; line-height: 1.6;
+            background: #020617;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="badge"><i data-lucide="sparkles" width="12"></i> SONAR PRO AI</div>
-        <h1>Termos Claros</h1>
-        <div class="subtitle">Traduz o "Legalês" para Português Claro.</div>
+        <div class="logo-pill">✨ Termos Claros AI</div>
+        <h1>Traduz o "Legalês"<br>para Português Claro.</h1>
     </header>
 
-    <div class="container">
-        
-        <!-- INPUT CARD -->
-        <div id="inputCard" class="glass-card">
-            
-            <button class="btn-magic" onclick="runMagicExample()">
-                <i data-lucide="zap" width="12"></i> Exemplo Realista
-            </button>
+    <main class="main-container">
+        <!-- INPUT -->
+        <section class="glass-card">
+            <div class="card-header">
+                <span class="card-title">1. Documento</span>
+                <button id="btnExample" class="btn-text">Exemplo</button>
+            </div>
 
+            <!-- TABS -->
             <div class="tabs">
                 <button class="tab-btn active" onclick="setMode('text')">Colar Texto</button>
                 <button class="tab-btn" onclick="setMode('pdf')">Upload PDF</button>
             </div>
 
-            <!-- Text Mode -->
+            <!-- Text Input -->
             <textarea id="termsInput" placeholder="Cola aqui o contrato, termos de uso ou política de privacidade..."></textarea>
             
-            <!-- PDF Mode -->
+            <!-- PDF Drop Zone -->
             <div id="dropZone" class="drop-zone">
-                <i data-lucide="file-up" size="48" style="color:var(--text-muted); margin-bottom:8px;"></i>
-                <p style="margin:0; color:var(--text-muted);">Arrasta o ficheiro PDF para aqui</p>
+                <i data-lucide="file-up" size="48" style="color:var(--text-muted); margin-bottom:10px;"></i>
+                <p style="margin:0; color:var(--text-muted); font-size:14px;">Arrasta um ficheiro PDF ou clica aqui</p>
+                <div id="fileInfo" class="file-info"></div>
                 <input type="file" id="fileInput" accept=".pdf" style="display:none;">
-                <div id="fileName" style="color:var(--primary); font-size:14px; margin-top:8px;"></div>
             </div>
 
-            <div class="controls">
-                <div>
-                    <label style="font-size:12px; color:var(--text-muted); font-weight:600; display:block; margin-bottom:8px; letter-spacing:0.5px;">ESTILO DA ANÁLISE</label>
-                    <select id="styleSelect">
-                        <option value="curto">Resumo Executivo (Rápido)</option>
-                        <option value="detalhado">Jurídico Detalhado</option>
-                        <option value="el5">Simplificado (Criança de 5 anos)</option>
-                        <option value="riscos">Auditoria de Riscos 🚩</option>
-                    </select>
+            <div style="margin-top:20px;">
+                <label>Estilo do Resumo</label>
+                <select id="styleSelect">
+                    <option value="curto">Resumo Curto & Direto</option>
+                    <option value="detalhado">Detalhado</option>
+                    <option value="el5">Explicado a uma criança</option>
+                    <option value="riscos">Apenas Riscos 🚩</option>
+                </select>
+            </div>
+            
+            <button class="btn-primary" id="btnSummarize">
+                <span>Analisar Documento</span> <i data-lucide="arrow-right" width="16"></i>
+            </button>
+        </section>
+
+        <!-- OUTPUT -->
+        <section class="glass-card">
+            <div class="card-header">
+                <span class="card-title">Resultado</span>
+                <button class="btn-icon" id="btnCopy"><i data-lucide="copy" width="14"></i> Copiar</button>
+            </div>
+            <div class="output-scroll" id="output">
+                <div style="text-align:center; padding-top:100px; opacity:0.5;">
+                    <i data-lucide="file-text" size="48"></i>
+                    <p style="font-size:14px; margin-top:10px;">O resumo aparecerá aqui.</p>
                 </div>
-                
-                <button id="btnAnalyze" class="btn-primary" onclick="analyze()">
-                    <span>Analisar Documento</span>
-                    <i data-lucide="arrow-right" width="16"></i>
-                </button>
             </div>
+        </section>
+    </main>
 
-            <!-- Loading Steps -->
-            <div id="loadingSteps" class="loading-steps">
-                <div id="step1" class="step"><div class="spinner"></div> A ler documento...</div>
-                <div id="step2" class="step">○ A detetar riscos...</div>
-                <div id="step3" class="step">○ A formatar relatório...</div>
-            </div>
-
-        </div>
-
-        <!-- OUTPUT CARD -->
-        <div id="outputCard" class="glass-card output-area">
-            <div style="display:flex; justify-content:space-between; margin-bottom:24px; border-bottom:1px solid var(--border); padding-bottom:16px;">
-                <span style="font-weight:600; color:#fff; display:flex; align-items:center; gap:8px;">
-                    <i data-lucide="file-check" width="18" style="color:var(--primary);"></i> Relatório Final
-                </span>
-                <button onclick="resetApp()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px;">Nova Análise</button>
-            </div>
-            <div id="markdownOutput" class="markdown-body"></div>
-        </div>
-
-    </div>
-
-    <footer>
-        Nota Legal: Esta ferramenta utiliza IA para fins informativos. Consulte sempre um advogado.
+    <footer class="simple-footer">
+        Isenção de Responsabilidade: Esta ferramenta utiliza Inteligência Artificial para processar informação.
+        Embora o objetivo seja a precisão, podem ocorrer erros. O conteúdo é apenas informativo e 
+        <strong>não constitui aconselhamento jurídico</strong>.
     </footer>
 
     <script>
@@ -236,7 +209,7 @@
         let currentFile = null;
         let mode = 'text';
 
-        // TABS
+        // Tab Switching
         function setMode(newMode) {
             mode = newMode;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -251,124 +224,112 @@
             }
         }
 
-        // MAGIC EXAMPLE (Realistic Mock Contract)
-        function runMagicExample() {
-            setMode('text');
-            const textarea = document.getElementById('termsInput');
-            textarea.value = "";
-            const text = `TERMOS DE SERVIÇO "FITNESS APP X" (EXEMPLO):
-1. DADOS BIOMÉTRICOS: Ao utilizar a app, o utilizador consente que recolhamos dados de frequência cardíaca, sono e localização GPS 24h/dia. Estes dados podem ser vendidos a "Parceiros de Seguros" para ajuste de prémios de saúde.
-2. RENOVAÇÃO AUTOMÁTICA: A subscrição Premium (19,99€/mês) renova-se automaticamente. O cancelamento exige o envio de carta registada com 30 dias de aviso prévio.
-3. ARBITRAGEM OBRIGATÓRIA: O utilizador renuncia ao direito de processar a Empresa em tribunal ou participar em ações coletivas.
-4. DIREITOS DE IMAGEM: Todas as fotos de progresso carregadas pertencem irrevogavelmente à Empresa para uso em marketing.`;
-            
-            let i = 0;
-            const type = () => { if(i<text.length) { textarea.value += text.charAt(i); i++; setTimeout(type, 5); } };
-            type();
-        }
-
-        // PDF DROP
+        // PDF Logic
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         
         dropZone.onclick = () => fileInput.click();
-        fileInput.onchange = (e) => handleFile(e.target.files[0]);
-        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; };
-        dropZone.ondrop = (e) => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); };
+        
+        fileInput.onchange = (e) => {
+            if (e.target.files[0]) {
+                currentFile = e.target.files[0];
+                document.getElementById('fileInfo').innerText = "📄 " + currentFile.name;
+                dropZone.style.borderColor = 'var(--accent)';
+            }
+        };
 
-        function handleFile(file) {
-            if (!file) return;
-            currentFile = file;
-            document.getElementById('fileName').innerText = `📄 ${file.name}`;
-            document.querySelector('.drop-zone i').style.color = 'var(--primary)';
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--accent)'; };
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files[0]) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        };
+
+        // Exemplo Realista
+        document.getElementById('btnExample').onclick = () => {
+            setMode('text');
+            document.querySelectorAll('.tab-btn')[0].click();
+            
+            const text = `TERMOS DE SERVIÇO "FITNESS APP X" (EXEMPLO FICTÍCIO):
+1. DADOS DE SAÚDE: Ao utilizar a app, o utilizador consente expressamente que os seus dados biométricos (frequência cardíaca, peso, sono) e localização GPS sejam partilhados com a "Seguradora Global Y" para fins de "ajuste de perfil de risco".
+2. RENOVAÇÃO AUTOMÁTICA: A subscrição Premium (19,99€/mês) renova-se automaticamente por períodos de 12 meses. O cancelamento exige notificação por carta registada com 60 dias de antecedência.
+3. ARBITRAGEM: O utilizador renuncia ao direito de participar em ações coletivas ou recorrer aos tribunais civis, aceitando a arbitragem exclusiva no estado do Delaware, EUA.
+4. CONTEÚDO: Todas as fotos de progresso carregadas na app tornam-se propriedade irrevogável da "Fitness App X" para uso em campanhas de marketing globais.`;
+            
+            const el = document.getElementById('termsInput');
+            el.value = "";
+            let i = 0;
+            const type = () => { 
+                if(i<text.length) { 
+                    el.value += text.charAt(i); 
+                    i++; 
+                    setTimeout(type, 2); // Escrita rápida
+                }
+            };
+            type();
+        };
+
+        // Função Update Status
+        function updateStatus(msg) {
+            document.getElementById('output').innerHTML = `
+                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; color:var(--text-muted); gap:15px;">
+                    <div class="spinner"></div>
+                    <div class="status-msg">${msg}</div>
+                </div>
+            `;
         }
 
-        // LOADING STEPS ANIMATION
-        function updateStep(stepNum) {
-            document.querySelectorAll('.step').forEach(s => {
-                s.className = 'step'; 
-                s.innerHTML = s.innerHTML.replace('<div class="spinner"></div>', '○').replace('✓', '○');
-            });
-            
-            const current = document.getElementById(`step${stepNum}`);
-            if(current) {
-                current.className = 'step active';
-                current.innerHTML = current.innerHTML.replace('○', '<div class="spinner"></div>');
-            }
-            
-            // Mark previous as done
-            for(let i=1; i<stepNum; i++) {
-                const prev = document.getElementById(`step${i}`);
-                prev.className = 'step done';
-                prev.innerHTML = prev.innerHTML.replace('<div class="spinner"></div>', '✓').replace('○', '✓');
-            }
-        }
-
-        // ANALYZE LOGIC
-        async function analyze() {
-            const btn = document.getElementById('btnAnalyze');
+        // Summarize
+        document.getElementById('btnSummarize').onclick = async () => {
+            const btn = document.getElementById('btnSummarize');
             const style = document.getElementById('styleSelect').value;
             const textVal = document.getElementById('termsInput').value;
 
-            if (mode === 'text' && textVal.length < 5) return alert("Por favor insere texto.");
-            if (mode === 'pdf' && !currentFile) return alert("Por favor carrega um PDF.");
+            if (mode === 'text' && textVal.length < 5) return alert("Insere texto.");
+            if (mode === 'pdf' && !currentFile) return alert("Escolhe um ficheiro.");
 
-            // Start UI
             btn.disabled = true;
-            btn.style.opacity = '0'; // Hide button content effectively
-            document.getElementById('loadingSteps').style.display = 'block';
-            document.getElementById('outputCard').style.display = 'none';
+            updateStatus("A iniciar...");
 
             try {
                 const formData = new FormData();
                 formData.append('style', style);
-                if (mode === 'pdf') formData.append('file', currentFile);
-                else formData.append('terms_text', textVal);
+                
+                if (mode === 'pdf') {
+                    updateStatus("A extrair texto do PDF...");
+                    formData.append('file', currentFile);
+                } else {
+                    formData.append('terms_text', textVal);
+                }
 
-                // Simulation of steps (for UX feel)
-                updateStep(1);
-                
-                const fetchPromise = fetch('/api/summarize', { method: 'POST', body: formData });
-                
-                // Artificial delay to show step 2 (UX trick)
-                setTimeout(() => updateStep(2), 1500);
+                // Simulação de Progresso
+                setTimeout(() => updateStatus("A detetar riscos e cláusulas..."), 1500);
+                setTimeout(() => updateStatus("A formatar o relatório..."), 3500);
 
-                const res = await fetchPromise;
-                
-                updateStep(3);
-                
+                const res = await fetch('/api/summarize', { method: 'POST', body: formData });
                 const data = await res.json();
+                
                 if (data.error) throw new Error(data.error);
 
-                // Render
-                setTimeout(() => {
-                    document.getElementById('markdownOutput').innerHTML = DOMPurify.sanitize(marked.parse(data.summary));
-                    document.getElementById('loadingSteps').style.display = 'none';
-                    document.getElementById('outputCard').style.display = 'block';
-                    btn.disabled = false;
-                    btn.style.opacity = '1';
-                    
-                    // Smooth scroll to result
-                    document.getElementById('outputCard').scrollIntoView({ behavior: 'smooth' });
-                }, 800);
+                document.getElementById('output').innerHTML = DOMPurify.sanitize(marked.parse(data.summary));
 
             } catch (err) {
-                alert("Erro: " + err.message);
+                document.getElementById('output').innerHTML = `<div style="color:#ef4444; text-align:center; padding-top:50px;">Erro: ${err.message}</div>`;
+            } finally {
                 btn.disabled = false;
-                btn.style.opacity = '1';
-                document.getElementById('loadingSteps').style.display = 'none';
+                btn.innerHTML = '<span>Analisar Documento</span> <i data-lucide="arrow-right" width="16"></i>';
+                lucide.createIcons();
             }
-        }
+        };
 
-        function resetApp() {
-            document.getElementById('outputCard').style.display = 'none';
-            document.getElementById('termsInput').value = '';
-            document.getElementById('fileName').innerText = '';
-            currentFile = null;
-            document.getElementById('inputCard').scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        marked.use({ breaks: true });
+        // Copiar
+        document.getElementById('btnCopy').onclick = () => {
+            const text = document.getElementById('output').innerText;
+            if(!text) return;
+            navigator.clipboard.writeText(text).then(() => alert("Copiado!"));
+        };
     </script>
 </body>
 </html>

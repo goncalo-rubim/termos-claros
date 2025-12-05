@@ -1,7 +1,6 @@
 flask
-flask-cors
-flask-limiter
 requests
 python-dotenv
+flask-cors
 gunicorn
 pypdf
