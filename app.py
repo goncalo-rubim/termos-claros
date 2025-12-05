@@ -47,7 +47,7 @@ Analisa os Termos e Condições fornecidos e traduz para Português de Portugal.
 REGRA VISUAL (DIAGRAMAS):
 Se houver conceitos complexos (ex: fluxo de dados, hierarquia legal), insere uma tag de imagem para ajudar a explicar: .
 
-ESTRUTURA OBRIGATÓRIA DA RESPOSTA:
+ESTRUTURA OBRIGATÓRIA DA RESPOSTA(exceto se contradizer o estilo, dá sempre primazia ao estilo):
 1. Inicia SEMPRE com este bloco exato:
    > **⚠️ AVISO IA:** Este resumo é informativo e não substitui aconselhamento jurídico profissional.
 
