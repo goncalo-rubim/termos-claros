@@ -4,8 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <title>Termos Claros – IA Jurídica</title>
-
+    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%2322c55e'/><text x='50' y='70' font-family='system-ui, sans-serif' font-weight='900' font-size='65' fill='%23020617' text-anchor='middle'>TC</text></svg>">
+    
     <meta name="description" content="Tradutor de Termos e Condições com IA. Simples, rápido e seguro.">
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -14,7 +15,8 @@
     <style>
         /* --- DESIGN SYSTEM (Modern Dark Theme) --- */
         :root {
-            color-scheme: dark;
+            color-scheme: dark; /* Força scrollbars e inputs escuros */
+
             --bg-deep: #020617;
             --surface-glass: rgba(15, 23, 42, 0.65);
             --surface-hover: rgba(30, 41, 59, 0.7);
@@ -23,6 +25,7 @@
             
             --accent: #22c55e;
             --accent-glow: rgba(34, 197, 94, 0.2);
+            
             --warning-bg: rgba(234, 179, 8, 0.1);
             --warning-border: rgba(234, 179, 8, 0.3);
             --warning-text: #fde047;
@@ -79,6 +82,7 @@
             font-size: clamp(32px, 5vw, 46px);
             letter-spacing: -1.5px;
             line-height: 1.3;
+            padding-bottom: 10px; /* Evita cortar o 'g' */
             background: linear-gradient(to bottom right, #fff, #94a3b8);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -88,7 +92,7 @@
             color: var(--text-muted);
             font-size: 16px;
             line-height: 1.6;
-            margin-top: 14px;
+            margin-top: 10px;
             max-width: 500px;
             margin-left: auto;
             margin-right: auto;
@@ -102,7 +106,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 24px;
-            flex-grow: 1; /* Garante que ocupa o espaço vertical disponível */
+            flex-grow: 1; /* Garante que o footer fica no fundo */
             margin-bottom: 60px;
         }
 
@@ -144,7 +148,7 @@
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            color: var(--text-muted);
+            color: rgba(248, 250, 252, 0.5);
             font-weight: 700;
             margin-bottom: 8px;
             display: block;
@@ -163,7 +167,7 @@
         }
 
         textarea {
-            flex-grow: 1; /* Ocupa altura restante do cartão */
+            flex-grow: 1;
             min-height: 200px;
             resize: none;
             line-height: 1.6;
@@ -173,6 +177,12 @@
             border-color: var(--accent);
             background: rgba(0, 0, 0, 0.5);
             box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        /* CORREÇÃO: Menu Dropdown Escuro */
+        select option {
+            background-color: #020617;
+            color: #f8fafc;
         }
 
         /* Custom Input Animation */
@@ -222,7 +232,6 @@
             line-height: 1.7;
         }
 
-        /* Markdown Styles */
         .output-scroll h3 {
             color: var(--accent);
             font-size: 16px;
@@ -234,7 +243,7 @@
         .output-scroll ul { padding-left: 20px; margin: 10px 0; }
         .output-scroll li { margin-bottom: 6px; }
 
-        /* ESTILO DO AVISO LEGAL (BLOCKQUOTE) - CRÍTICO */
+        /* AVISO LEGAL AMARELO */
         .output-scroll blockquote {
             margin: 0 0 20px 0;
             padding: 16px;
@@ -266,7 +275,7 @@
         }
         .disclaimer-text strong { color: #64748b; }
 
-        /* --- UTILS --- */
+        /* --- ANIMAÇÕES --- */
         .spinner {
             width: 20px; height: 20px;
             border: 2px solid rgba(255,255,255,0.1);
@@ -277,7 +286,6 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Scrollbar Personalizada */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
@@ -301,7 +309,6 @@
         <section class="glass-card">
             <div class="card-header">
                 <span class="card-title">1. Configuração & Texto</span>
-                
                 <button id="btnExample" class="btn-text">Inserir exemplo</button>
             </div>
 
@@ -360,7 +367,7 @@
     </footer>
 
     <script>
-        // Elementos
+        // Elementos DOM
         const btnSummarize = document.getElementById('btnSummarize');
         const termsInput = document.getElementById('termsInput');
         const styleSelect = document.getElementById('styleSelect');
@@ -373,7 +380,7 @@
         const statusDot = document.getElementById('statusDot');
         const statusLabel = document.getElementById('statusLabel');
 
-        // Toggle do campo personalizado
+        // Toggle Custom Input
         styleSelect.addEventListener('change', () => {
             if (styleSelect.value === 'custom') {
                 customWrapper.classList.add('visible');
@@ -389,8 +396,6 @@
 1. DADOS: Ao aceitar, o utilizador concorda que a "Empresa X" pode aceder à câmara do dispositivo a qualquer momento para fins de "melhoria de serviço".
 2. ARBITRAGEM: O utilizador renuncia ao direito de processar a empresa em tribunal ou participar em ações coletivas.
 3. CONTEÚDO: Todo o conteúdo carregado pelo utilizador torna-se propriedade irrevogável da "Empresa X".`;
-            
-            // Flash visual para indicar inserção
             termsInput.style.borderColor = "var(--accent)";
             termsInput.style.boxShadow = "0 0 0 2px var(--accent-glow)";
             setTimeout(() => {
@@ -407,7 +412,6 @@
                 copyText.textContent = "Copiado!";
                 btnCopy.style.borderColor = "var(--accent)";
                 btnCopy.style.color = "#fff";
-                
                 setTimeout(() => {
                     copyText.textContent = originalText;
                     btnCopy.style = "";
@@ -415,14 +419,12 @@
             });
         });
 
-        // Lógica de Resumo
+        // Função Principal de Resumo
         async function summarize() {
             const text = termsInput.value.trim();
-            
-            // Validação simples
             if (!text) {
                 termsInput.style.borderColor = "#ef4444";
-                termsInput.placeholder = "⚠️ Erro: Precisas de colar algum texto aqui primeiro.";
+                termsInput.placeholder = "⚠️ Erro: Cola o texto aqui primeiro.";
                 setTimeout(() => {
                     termsInput.style.borderColor = "";
                     termsInput.placeholder = "Cola aqui o texto...";
@@ -430,11 +432,8 @@
                 return;
             }
 
-            // Estado de Loading
             btnSummarize.disabled = true;
             btnSummarize.innerHTML = '<div class="spinner"></div> Processando...';
-            
-            // Atualiza status dot
             statusDot.style.background = "var(--accent)";
             statusDot.style.boxShadow = "0 0 8px var(--accent)";
             statusLabel.innerText = "A pensar...";
@@ -458,20 +457,15 @@
                 });
 
                 const data = await res.json();
-
                 if (data.error) throw new Error(data.error);
 
-                // Renderização do Markdown com segurança (DOMPurify)
                 outputDiv.innerHTML = DOMPurify.sanitize(marked.parse(data.summary));
-                
                 statusLabel.innerText = "Resumo Pronto";
 
             } catch (err) {
-                // Estado de Erro
                 statusDot.style.background = "#ef4444";
                 statusDot.style.boxShadow = "0 0 8px #ef4444";
                 statusLabel.innerText = "Erro";
-                
                 outputDiv.innerHTML = `
                     <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; color:#ef4444; text-align:center;">
                         <div style="font-size:30px; margin-bottom:10px;">⚠️</div>
@@ -485,7 +479,6 @@
             }
         }
 
-        // Trigger no botão e Enter
         btnSummarize.addEventListener('click', summarize);
         termsInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) summarize();

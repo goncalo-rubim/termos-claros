@@ -13,13 +13,25 @@ PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions"
 MODEL_NAME = "sonar"
 
-# --- PERSONALIDADES DA IA ---
+# --- PERSONALIDADES DA IA (VERSÃO AGRESSIVA PARA FORÇAR O ESTILO) ---
 STYLE_PROMPTS = {
-    "curto": "Sê conciso. Usa apenas bullet points curtos. Foca no essencial. Máximo 200 palavras.",
-    "detalhado": "Explica detalhadamente. Se houver conceitos técnicos (ex: cookies, arbitragem), explica-os de forma simples.",
-    "el5": "Explica como se eu tivesse 5 anos. Usa analogias do dia-a-dia. Tom educativo.",
-    "riscos": "Sê o 'Advogado do Diabo'. Ignora os benefícios. Lista APENAS perigos, renúncias de direitos e dados recolhidos.",
-    "custom": "Segue estritamente a instrução personalizada do utilizador."
+    "curto": (
+        "RESUMO ULTRA-CURTO. Usa APENAS bullet points. "
+        "Máximo de 3 a 5 pontos principais. Sê direto e seco. Sem introduções longas."
+    ),
+    "detalhado": (
+        "ANÁLISE PROFUNDA E DETALHADA. Divide por secções claras (Dados, Direitos, Riscos). "
+        "Explica conceitos técnicos. Usa parágrafos completos e cita cláusulas específicas se necessário."
+    ),
+    "el5": (
+        "EXPLICAÇÃO PARA UMA CRIANÇA DE 5 ANOS. Usa linguagem extremamente simples, emojis e analogias do dia-a-dia. "
+        "Tom divertido e educativo. Evita qualquer jargão jurídico."
+    ),
+    "riscos": (
+        "ALERTA DE PERIGO 🚩. Ignora os benefícios. Foca-te EXCLUSIVAMENTE nas 'Red Flags', cláusulas abusivas, "
+        "perda de privacidade e renúncia de direitos. Sê alarmista e crítico."
+    ),
+    "custom": "Segue estritamente a instrução personalizada: "
 }
 
 # Prompt de Sistema (Cérebro)
@@ -53,19 +65,29 @@ def chamar_perplexity(texto: str, estilo_key: str, custom_prompt: str = "") -> s
     if not PERPLEXITY_API_KEY:
         raise RuntimeError("A API Key do Perplexity não está configurada.")
 
-    # Define a instrução de estilo
+    # 1. Define a instrução de estilo
     instruction = STYLE_PROMPTS.get(estilo_key, STYLE_PROMPTS["curto"])
     if estilo_key == "custom" and custom_prompt:
         instruction = f"Instrução personalizada: {custom_prompt}"
 
+    # 2. Configura o Prompt do Sistema
+    system_content = SYSTEM_PROMPT_BASE.format(style_instruction=instruction)
+
+    # 3. FORÇA O ESTILO NA MENSAGEM DO UTILIZADOR (A correção nuclear)
+    user_content_reinforced = (
+        f"⚠️ INSTRUÇÃO OBRIGATÓRIA: {instruction}\n"
+        f"---------------------------------------------------\n"
+        f"ANALISA ESTE TEXTO:\n\n{texto}"
+    )
+
     payload = {
         "model": MODEL_NAME,
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT_BASE.format(style_instruction=instruction)},
-            {"role": "user", "content": f"Analisa os seguintes Termos & Condições:\n\n{texto}"}
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_content_reinforced}
         ],
-        "temperature": 0.1, # Baixa temperatura para precisão factual
-        "max_tokens": 2500
+        "temperature": 0.2, # Baixa temperatura para precisão factual
+        "max_tokens": 3000
     }
 
     try:
