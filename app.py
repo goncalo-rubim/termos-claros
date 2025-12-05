@@ -11,71 +11,103 @@ PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions"
 MODEL_NAME = "sonar"
 
-# --- DEFINIÇÃO DE IDENTIDADES (O segredo para funcionar bem) ---
-# Em vez de regras complexas, definimos "Quem é a IA" neste momento.
+# --- 1. AVISO LEGAL (Constante para garantir consistência) ---
+AVISO_LEGAL = (
+    "> **⚠️ AVISO IA:** Este resumo é gerado automaticamente e serve apenas para fins informativos. "
+    "**Não substitui a leitura integral do documento nem constitui aconselhamento jurídico profissional.** "
+    "Para decisões legais, consulte um advogado."
+)
+
+# --- 2. PERSONAS (Mais fortes e distintas) ---
 STYLE_IDENTITIES = {
     "curto": (
-        "IDENTIDADE: És um Gestor Executivo sem tempo. "
-        "ESTILO: Telegráfico, direto ao ponto, usa apenas bullet points. "
-        "OBJETIVO: Resumir o máximo de informação no mínimo de palavras."
+        "IDENTIDADE: Editor Executivo Implacável.\n"
+        "ESTILO: Telegráfico. Usa apenas listas (bullet points). Frases curtas e secas.\n"
+        "OBJETIVO: Máxima informação, zero gordura. Limite de 200 palavras."
     ),
     "detalhado": (
-        "IDENTIDADE: És um Jurista Professor. "
-        "ESTILO: Claro, educativo e completo. Explica o 'porquê' das coisas. "
-        "OBJETIVO: Garantir que o utilizador entende todas as nuances."
+        "IDENTIDADE: Professor de Direito da Universidade.\n"
+        "ESTILO: Expositivo, claro e minucioso. Explica termos técnicos entre parênteses.\n"
+        "OBJETIVO: Garantir que o aluno (utilizador) entende todas as nuances e exceções."
     ),
     "el5": (
-        "IDENTIDADE: És um Professor da Escola Primária. "
-        "ESTILO: Usa linguagem infantil, emojis divertidos e analogias (ex: 'os teus brinquedos', 'as regras da casa'). "
-        "OBJETIVO: Explicar conceitos complexos a uma criança de 5 anos. NUNCA uses termos técnicos sem explicar."
+        "IDENTIDADE: Educadora de Infância.\n"
+        "ESTILO: Usa linguagem muito simples, emojis divertidos e analogias com brinquedos ou regras da casa.\n"
+        "OBJETIVO: Traduzir conceitos complexos para uma criança de 5 anos. Proibido usar 'juridiquês'."
     ),
     "riscos": (
-        "IDENTIDADE: És um Auditor de Segurança Paranoico. "
-        "ESTILO: Alarmista, crítico e focado apenas no negativo. "
-        "OBJETIVO: Encontrar todas as armadilhas. Ignora as partes boas do texto."
+        "IDENTIDADE: Auditor de Segurança Paranoico.\n"
+        "ESTILO: Alarmista, crítico e focado apenas no negativo (Red Flags).\n"
+        "OBJETIVO: Encontrar todas as armadilhas. Ignora os benefícios. Assume sempre o pior cenário."
     ),
-    "custom": "IDENTIDADE PERSONALIZADA: Segue esta instrução: "
+    "custom": "Assistente Flexível."
 }
 
-# --- PROMPT MESTRA ---
-SYSTEM_PROMPT = """
+# --- 3. PROMPTS DIFERENCIADOS (O Segredo da Lógica) ---
+
+# PROMPT A: Para estilos padrão (Garante a estrutura bonita de 6 pontos)
+SYSTEM_PROMPT_ESTRUTURADO = """
 {identity_instruction}
 
 TAREFA:
-Analisa os Termos e Condições fornecidos e traduz para Português de Portugal.
+Analisa os Termos e Condições e traduz para Português de Portugal.
 
-REGRA VISUAL (DIAGRAMAS):
-Se houver conceitos complexos (ex: fluxo de dados, hierarquia legal), insere uma tag de imagem para ajudar a explicar: .
+REGRA VISUAL:
+Se houver conceitos complexos (ex: fluxo de dados), insere uma tag de imagem: .
 
-ESTRUTURA OBRIGATÓRIA DA RESPOSTA(exceto se contradizer o estilo, dá sempre primazia ao estilo):
-1. Inicia SEMPRE com este bloco exato:
-   > **⚠️ AVISO IA:** Este resumo é informativo e não substitui aconselhamento jurídico profissional.
+ESTRUTURA OBRIGATÓRIA DA RESPOSTA:
+1. Inicia SEMPRE com este aviso exato:
+   {aviso}
 
-2. **🎯 Resumo Global** (Escreve no teu ESTILO de identidade)
-3. **🚨 Pontos Críticos** (Escreve no teu ESTILO de identidade)
-4. **👤 Os teus Dados** (Escreve no teu ESTILO de identidade)
-5. **⚖️ Os teus Direitos** (Escreve no teu ESTILO de identidade)
-6. **💡 Veredito** (Escreve no teu ESTILO de identidade)
+2. **🎯 Resumo Global** (No teu estilo de identidade)
+3. **🚨 Pontos Críticos** (No teu estilo de identidade)
+4. **👤 Os teus Dados** (No teu estilo de identidade)
+5. **⚖️ Os teus Direitos** (No teu estilo de identidade)
+6. **💡 Veredito** (No teu estilo de identidade)
+"""
+
+# PROMPT B: Para estilo personalizado (Ignora a estrutura se o utilizador pedir)
+SYSTEM_PROMPT_LIVRE = """
+TAREFA: Analisa os Termos e Condições em Português de Portugal.
+
+REGRA DE OURO (Prioridade Máxima):
+Segue ESTRITAMENTE a instrução personalizada abaixo.
+Se o utilizador pedir um formato específico (ex: "apenas 5 linhas", "só uma lista"), IGNORA qualquer estrutura padrão e cumpre o pedido do utilizador.
+
+INSTRUÇÃO PERSONALIZADA: {custom_instruction}
+
+REGRA DE SEGURANÇA:
+Independentemente do pedido, começa a resposta com este aviso:
+{aviso}
+
+REGRA VISUAL:
+Usa  se ajudar a explicar.
 """
 
 def chamar_perplexity(texto: str, estilo_key: str, custom_prompt: str = "") -> str:
     if not PERPLEXITY_API_KEY:
-        raise RuntimeError("API Key não configurada.")
+        raise RuntimeError("A API Key do Perplexity não está configurada.")
 
-    # 1. Seleciona a Identidade
-    identity = STYLE_IDENTITIES.get(estilo_key, STYLE_IDENTITIES["curto"])
+    # LÓGICA DE SELEÇÃO DE PROMPT
     if estilo_key == "custom" and custom_prompt:
-        identity += custom_prompt
+        # Se for personalizado, usa o Prompt Livre (sem estrutura fixa)
+        system_content = SYSTEM_PROMPT_LIVRE.format(
+            custom_instruction=custom_prompt,
+            aviso=AVISO_LEGAL
+        )
+    else:
+        # Se for padrão, usa o Prompt Estruturado (com os 6 tópicos)
+        identidade = STYLE_IDENTITIES.get(estilo_key, STYLE_IDENTITIES["curto"])
+        system_content = SYSTEM_PROMPT_ESTRUTURADO.format(
+            identity_instruction=identidade,
+            aviso=AVISO_LEGAL
+        )
 
-    # 2. Monta o Prompt de Sistema
-    system_content = SYSTEM_PROMPT.format(identity_instruction=identity)
-
-    # 3. Envia o pedido
     payload = {
         "model": MODEL_NAME,
         "messages": [
             {"role": "system", "content": system_content},
-            {"role": "user", "content": f"Aplica a tua IDENTIDADE e analisa este texto:\n\n{texto}"}
+            {"role": "user", "content": f"Texto para analisar:\n\n{texto}"}
         ],
         "temperature": 0.2,
         "max_tokens": 3000
@@ -88,8 +120,7 @@ def chamar_perplexity(texto: str, estilo_key: str, custom_prompt: str = "") -> s
         })
         response.raise_for_status()
         return response.json()["choices"][0]["message"]["content"]
-    
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         print(f"Erro API: {e}")
         raise RuntimeError("Erro ao contactar a IA.")
 
