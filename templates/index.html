@@ -1,366 +1,490 @@
 <!DOCTYPE html>
 <html lang="pt">
-
 <head>
     <meta charset="UTF-8" />
-    <title>Termos Claros – Explica T&C com IA</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Ferramenta simples que lê e explica Termos & Condições." />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>Termos Claros – IA Jurídica</title>
+    <meta name="description" content="Tradutor de Termos e Condições com IA. Simples, rápido e seguro.">
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 
     <style>
-        /* --- MANTIVE O TEU CSS ORIGINAL --- */
+        /* --- DESIGN SYSTEM (Modern Dark Theme) --- */
         :root {
-            --bg: #020617;
-            --bg-alt: #0b1220;
-            --surface: #020617;
+            --bg-deep: #020617;
+            --surface-glass: rgba(15, 23, 42, 0.65);
+            --surface-hover: rgba(30, 41, 59, 0.7);
+            --border: rgba(148, 163, 184, 0.1);
+            --border-highlight: rgba(34, 197, 94, 0.3);
+            
             --accent: #22c55e;
-            --accent-soft: rgba(34, 197, 94, 0.14);
-            --accent-strong: #16a34a;
-            --text: #e5e7eb;
-            --muted: #9ca3af;
-            --border: #1f2937;
-            --error: #f97373;
-            --radius-lg: 18px;
-            --radius-md: 10px;
-            --shadow-lg: 0 32px 90px rgba(15, 23, 42, 0.9);
-            --shadow-md: 0 16px 50px rgba(15, 23, 42, 0.8);
+            --accent-glow: rgba(34, 197, 94, 0.2);
+            --warning-bg: rgba(234, 179, 8, 0.1);
+            --warning-border: rgba(234, 179, 8, 0.3);
+            --warning-text: #fde047;
+
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            
+            --radius: 16px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
 
         body {
             margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(34, 197, 94, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(56, 189, 248, 0.08) 0%, transparent 45%);
+            color: var(--text-main);
             min-height: 100vh;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: radial-gradient(circle at top, #1d2436 0, #020617 52%, #020617 100%);
-            color: var(--text);
             display: flex;
             flex-direction: column;
+            align-items: center;
         }
 
-        a { color: inherit; text-decoration: none; }
+        /* --- HEADER --- */
+        header {
+            text-align: center;
+            padding: 50px 20px 30px;
+            max-width: 650px;
+            animation: fadeIn 0.8s ease-out;
+        }
 
-        /* NAVBAR */
-        .nav { max-width: 1120px; margin: 0 auto; padding: 14px 20px 10px; display: flex; align-items: center; justify-content: space-between; }
-        .nav-left { display: flex; align-items: center; gap: 10px; }
-        .logo-mark { width: 26px; height: 26px; border-radius: 9px; background: radial-gradient(circle at 30% 0, #22c55e 0, #16a34a 36%, #22c55e 100%); box-shadow: 0 0 18px rgba(34, 197, 94, 0.85); display: flex; align-items: center; justify-content: center; color: #020617; font-weight: 700; font-size: 15px; }
-        .logo-text-main { font-weight: 600; letter-spacing: 0.03em; font-size: 16px; }
-        .logo-text-sub { font-size: 11px; color: var(--muted); }
-        .nav-right { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--muted); }
-        .nav-pill { padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(55, 65, 81, 0.9); background: rgba(15, 23, 42, 0.9); }
+        .logo-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 16px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
 
-        /* PAGE LAYOUT */
-        .page { max-width: 1120px; margin: 0 auto 40px; padding: 0 20px 40px; }
+        h1 {
+            margin: 0;
+            font-size: clamp(32px, 5vw, 46px);
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            background: linear-gradient(to bottom right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-        /* HERO */
-        .hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 26px; margin-top: 10px; margin-bottom: 24px; align-items: center; }
-        .hero-text h1 { margin: 0 0 8px; font-size: clamp(26px, 3.2vw, 32px); letter-spacing: 0.01em; }
-        .hero-text p { margin: 0; font-size: 14px; color: var(--muted); max-width: 520px; }
-        .hero-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
-        .hero-badge { font-size: 11px; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(55, 65, 81, 0.9); background: rgba(15, 23, 42, 0.95); color: var(--muted); }
-        .hero-highlight { color: var(--accent); font-weight: 500; }
-        .hero-card { border-radius: 22px; padding: 14px 14px 12px; background: radial-gradient(circle at 0 0, rgba(34, 197, 94, 0.2) 0, transparent 55%), #020617; border: 1px solid rgba(31, 41, 55, 0.95); box-shadow: var(--shadow-md); font-size: 12px; }
-        .hero-card-title { font-size: 12px; margin-bottom: 4px; color: var(--muted); font-weight: 500; display: flex; align-items: center; gap: 6px; }
-        .hero-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 10px rgba(34, 197, 94, 0.9); }
-        .hero-conv { margin-top: 6px; border-radius: 12px; border: 1px solid rgba(51, 65, 85, 0.95); background: rgba(15, 23, 42, 0.96); padding: 8px 10px; }
-        .hero-bubble { display: inline-block; margin-bottom: 4px; padding: 6px 10px; border-radius: 14px; font-size: 12px; line-height: 1.4; max-width: 100%; }
-        .hero-bubble.user { background: #020617; border: 1px solid rgba(55, 65, 81, 0.95); align-self: flex-end; }
-        .hero-bubble.bot { background: #022c22; border: 1px solid rgba(34, 197, 94, 0.65); color: #bbf7d0; }
-        .hero-note { font-size: 10px; color: var(--muted); margin-top: 4px; }
+        p.hero-desc {
+            color: var(--text-muted);
+            font-size: 16px;
+            line-height: 1.6;
+            margin-top: 14px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
 
-        /* MAIN TOOL */
-        .tool { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr); gap: 18px; }
-        @media (max-width: 880px) { .hero { grid-template-columns: minmax(0, 1fr); } .tool { grid-template-columns: minmax(0, 1fr); } }
+        /* --- MAIN GRID --- */
+        .main-container {
+            width: 100%;
+            max-width: 1100px;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            flex-grow: 1; /* Garante que ocupa o espaço vertical disponível */
+            margin-bottom: 60px;
+        }
 
-        .pane { background: var(--surface); border-radius: 20px; padding: 16px 16px 14px; border: 1px solid rgba(31, 41, 55, 0.95); box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
-        .pane--right { background: radial-gradient(circle at 100% 0, rgba(34, 197, 94, 0.18) 0, transparent 55%), #020617; }
-        .pane-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-        .pane-header h2 { margin: 0; font-size: 14px; font-weight: 500; }
-        .pane-header small { font-size: 11px; color: var(--muted); }
-        
-        label { font-size: 12px; color: var(--muted); margin-bottom: 4px; display: block; }
-        select, input[type="text"] { width: 100%; padding: 7px 10px; border-radius: 10px; border: 1px solid rgba(75, 85, 99, 0.9); background: #020617; color: var(--text); font-size: 13px; outline: none; }
-        
-        textarea { width: 100%; min-height: 210px; max-height: 340px; resize: vertical; padding: 9px 10px; border-radius: 10px; border: 1px solid rgba(55, 65, 81, 0.95); background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9) 0, #020617 52%); color: var(--text); font-size: 13px; line-height: 1.45; outline: none; }
-        textarea::placeholder { color: rgba(148, 163, 184, 0.65); }
-        .hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+        @media (max-width: 900px) {
+            .main-container { grid-template-columns: 1fr; padding: 0 16px; }
+            header { padding-top: 30px; }
+        }
 
-        .actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; font-size: 11px; color: var(--muted); }
-        .chip { padding: 3px 8px; border-radius: 999px; border: 1px solid rgba(55, 65, 81, 0.85); background: rgba(15, 23, 42, 0.9); }
+        /* --- CARDS (Glassmorphism) --- */
+        .glass-card {
+            background: var(--surface-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: var(--transition);
+            min-height: 520px;
+        }
 
-        .button { border: none; cursor: pointer; border-radius: 999px; font-size: 13px; font-weight: 500; padding: 7px 16px; display: inline-flex; align-items: center; gap: 7px; background: linear-gradient(135deg, #22c55e, #16a34a); color: #020617; box-shadow: 0 10px 25px rgba(34, 197, 94, 0.55); transition: transform 0.05s ease; }
-        .button:hover { transform: translateY(-1px); filter: brightness(1.03); }
-        .button:active { transform: translateY(0); }
-        .button[disabled] { opacity: 0.6; cursor: default; transform: none; }
-        
-        /* Botão secundário estilo Chip para o "Exemplo" */
-        .button-small {
-            background: transparent;
-            border: 1px solid rgba(55, 65, 81, 0.85);
-            color: var(--muted);
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 6px;
+        .glass-card:hover { border-color: rgba(255,255,255,0.1); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .card-title { font-weight: 600; font-size: 15px; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .status-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent); }
+
+        /* --- INPUTS & CONTROLS --- */
+        label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        select, input[type="text"], textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        textarea {
+            flex-grow: 1; /* Ocupa altura restante do cartão */
+            min-height: 200px;
+            resize: none;
+            line-height: 1.6;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            border-color: var(--accent);
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        /* Custom Input Animation */
+        #customInputWrapper {
+            max-height: 0; overflow: hidden; opacity: 0; transition: var(--transition);
+        }
+        #customInputWrapper.visible { max-height: 60px; margin-top: 12px; opacity: 1; }
+
+        /* BUTTONS */
+        .btn-primary {
+            margin-top: 16px;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #22c55e, #15803d);
+            color: #fff;
+            font-weight: 600;
+            font-size: 15px;
             cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.3);
+            transition: var(--transition);
         }
-        .button-small:hover { color: var(--text); border-color: var(--text); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(34, 197, 94, 0.4); }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary:disabled { opacity: 0.6; cursor: wait; filter: grayscale(1); transform: none; }
 
-        .button-icon { width: 14px; height: 14px; border-radius: 999px; background: rgba(15, 23, 42, 0.8); display: inline-flex; align-items: center; justify-content: center; color: #bbf7d0; font-size: 11px; }
+        .btn-text {
+            background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: var(--transition);
+        }
+        .btn-text:hover { background: rgba(34, 197, 94, 0.1); }
 
-        /* OUTPUT */
-        .output-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-        .status { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
-        .status-dot { width: 7px; height: 7px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 7px rgba(34, 197, 94, 0.8); }
-        .output-wrapper { position: relative; flex: 1; min-height: 210px; border-radius: 12px; border: 1px solid rgba(31, 41, 55, 0.95); background: radial-gradient(circle at 0 0, rgba(34, 197, 94, 0.16) 0, transparent 55%), #020617; padding: 10px 11px 10px; overflow: hidden; }
-        .output { height: calc(100% - 4px); overflow-y: auto; padding-right: 4px; font-size: 13px; line-height: 1.6; color: #e5e7eb; }
-        
-        /* ADICIONADO: Estilos para o Markdown dentro do Output */
-        .output h3 { margin-top: 15px; margin-bottom: 5px; color: var(--accent); font-size: 14px; border-bottom: 1px solid rgba(34, 197, 94, 0.2); padding-bottom: 2px; }
-        .output ul { padding-left: 20px; margin: 5px 0; }
-        .output li { margin-bottom: 4px; }
-        .output strong { color: #fff; font-weight: 600; }
-        .output p { margin-bottom: 10px; margin-top: 0; }
+        .btn-icon {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted);
+            padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: var(--transition);
+        }
+        .btn-icon:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.2); }
 
-        .placeholder-output { font-size: 12px; color: var(--muted); }
-        .loading { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--accent); }
-        .spinner { width: 14px; height: 14px; border: 2px solid rgba(34, 197, 94, 0.25); border-top-color: var(--accent); border-radius: 999px; animation: spin 0.7s linear infinite; }
+        /* --- OUTPUT AREA --- */
+        .output-scroll {
+            height: 100%;
+            overflow-y: auto;
+            padding-right: 6px;
+            color: #e2e8f0;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        /* Markdown Styles */
+        .output-scroll h3 {
+            color: var(--accent);
+            font-size: 16px;
+            margin: 24px 0 10px;
+            border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+            padding-bottom: 6px;
+        }
+        .output-scroll strong { color: #fff; font-weight: 700; }
+        .output-scroll ul { padding-left: 20px; margin: 10px 0; }
+        .output-scroll li { margin-bottom: 6px; }
+
+        /* ESTILO DO AVISO LEGAL (BLOCKQUOTE) - CRÍTICO */
+        .output-scroll blockquote {
+            margin: 0 0 20px 0;
+            padding: 16px;
+            background: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-left: 4px solid #eab308;
+            border-radius: 8px;
+            color: var(--warning-text);
+            font-size: 13px;
+            line-height: 1.5;
+            font-style: normal;
+        }
+        .output-scroll blockquote strong { color: #fef08a; }
+
+        /* --- FOOTER --- */
+        .app-footer {
+            width: 100%;
+            padding: 32px 20px;
+            background: #0b1121;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        .disclaimer-text {
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 12px;
+            color: #475569;
+            line-height: 1.6;
+        }
+        .disclaimer-text strong { color: #64748b; }
+
+        /* --- UTILS --- */
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .error { margin-top: 4px; font-size: 11px; color: var(--error); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* HOW IT WORKS */
-        .how { margin-top: 30px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; font-size: 12px; }
-        @media (max-width: 880px) { .how { grid-template-columns: minmax(0, 1fr); } }
-        .how-card { border-radius: 14px; padding: 10px 11px 10px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(31, 41, 55, 0.95); }
-        .how-title { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
-        .footer-note { font-size: 10px; color: var(--muted); margin-top: 6px; text-align: right; }
-        
-        .hero-cta { margin-top: 14px; display: flex; align-items: center; gap: 10px; font-size: 12px; }
-        .hero-cta-button { cursor: pointer; border-radius: 999px; border: 1px solid rgba(55, 65, 81, 0.9); padding: 6px 12px; background: #020617; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text); }
-        .hero-cta-button span:last-child { font-size: 10px; color: var(--muted); }
+        /* Scrollbar Personalizada */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
     </style>
 </head>
-
 <body>
-    <header class="nav">
-        <div class="nav-left">
-            <div class="logo-mark">TC</div>
-            <div>
-                <div class="logo-text-main">Termos Claros</div>
-                <div class="logo-text-sub">Torna o “legalês” legível</div>
-            </div>
-        </div>
-        <div class="nav-right">
-            <div class="nav-pill">Powered by Perplexity Sonar</div>
-        </div>
+
+    <header>
+        <div class="logo-pill">✨ Termos Claros AI</div>
+        <h1>Traduz o "Legalês"<br>para Português Claro.</h1>
+        <p class="hero-desc">
+            Cola os Termos & Condições de qualquer site ou app. A nossa IA destaca os riscos, 
+            os teus direitos e o uso de dados, sem complicações.
+        </p>
     </header>
 
-    <main class="page">
-        <section class="hero">
-            <div class="hero-text">
-                <h1>Lê os Termos &amp; Condições <span class="hero-highlight">sem sofrer</span>.</h1>
-                <p>
-                    Cola o texto chato, escolhe o estilo da resposta e deixa a IA explicar em português claro
-                    o que estás realmente a aceitar – direitos, obrigações, dados e riscos.
-                </p>
-                <div class="hero-badges">
-                    <div class="hero-badge">✔ Linguagem simples</div>
-                    <div class="hero-badge">✔ Destaca riscos importantes</div>
-                    <div class="hero-badge">✔ Análise via Perplexity AI</div>
-                </div>
-                <div class="hero-cta">
-                    <button type="button" class="hero-cta-button" id="scrollToTool">
-                        <span>Começar já a resumir</span>
-                        <span>Ctrl+Enter para enviar</span>
-                    </button>
+    <main class="main-container">
+        
+        <section class="glass-card">
+            <div class="card-header">
+                <span class="card-title">1. Configuração & Texto</span>
+                <button id="btnExample" class="btn-text">Inserir exemplo</button>
+            </div>
+
+            <label for="styleSelect">Estilo do Resumo</label>
+            <select id="styleSelect">
+                <option value="curto">Resumo Curto & Direto (Recomendado)</option>
+                <option value="detalhado">Explicação Detalhada por Tópicos</option>
+                <option value="el5">Ultra Simples (Explicado a uma criança)</option>
+                <option value="riscos">Apenas Riscos e Perigos 🚩</option>
+                <option value="custom">✨ Personalizado</option>
+            </select>
+
+            <div id="customInputWrapper">
+                <input type="text" id="customPrompt" placeholder="Ex: 'Quais são as regras de cancelamento?'">
+            </div>
+
+            <label for="termsInput" style="margin-top: 16px;">Documento Jurídico</label>
+            <textarea id="termsInput" placeholder="Cola aqui o texto..."></textarea>
+            
+            <button class="btn-primary" id="btnSummarize">
+                <span>Analisar Documento</span>
+            </button>
+        </section>
+
+        <section class="glass-card">
+            <div class="card-header">
+                <span class="card-title">
+                    <span class="status-dot" id="statusDot" style="background:var(--text-muted); box-shadow:none;"></span>
+                    <span id="statusLabel">Resultado</span>
+                </span>
+                <button class="btn-icon" id="btnCopy" title="Copiar para área de transferência">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span id="copyText">Copiar</span>
+                </button>
+            </div>
+
+            <div class="output-scroll" id="output">
+                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; color:var(--text-muted); text-align:center; opacity:0.6;">
+                    <div style="font-size:40px; margin-bottom:12px; filter:grayscale(1);">📄</div>
+                    <p style="margin:0; font-size:14px;">O resumo aparecerá aqui.</p>
                 </div>
             </div>
-            <aside class="hero-card" aria-hidden="true">
-                <div class="hero-card-title">
-                    <span class="hero-dot"></span> Vista rápida do que o bot faz
-                </div>
-                <div class="hero-conv">
-                    <div class="hero-bubble user">Não percebo estes termos enormes. O que estou a aceitar?</div>
-                    <div class="hero-bubble bot">
-                        Vou ler tudo e devolver-te um resumo claro: o que recolhem sobre ti, para que usam e o que pode correr mal.
-                    </div>
-                </div>
-                <p class="hero-note">O objetivo não é substituir um advogado, mas dar-te uma base.</p>
-            </aside>
         </section>
 
-        <section class="tool" id="tool">
-            <section class="pane" aria-label="Ferramenta de resumo de termos">
-                <div class="pane-header">
-                    <div>
-                        <h2>1. Escolhe o estilo</h2>
-                        <small>Define como queres que a explicação seja apresentada.</small>
-                    </div>
-                </div>
-                <div style="margin-bottom:8px;">
-                    <select id="style-select">
-                        <option value="resumo direto e curto em linguagem simples">Resumo direto e curto</option>
-                        <option value="explicação detalhada mas clara em linguagem simples">Explicação detalhada</option>
-                        <option value="explicação ultra simples para leigos">Ultra simples (EL5)</option>
-                        <option value="focado em riscos e perigos">Focado apenas nos riscos</option>
-                    </select>
-                </div>
-
-                <div>
-                    <div class="pane-header" style="margin-top:4px;">
-                        <div>
-                            <h2>2. Cola os Termos &amp; Condições</h2>
-                            <small>Texto de um site, app ou serviço online.</small>
-                        </div>
-                        <button id="btnExample" class="button-small">Inserir Exemplo</button>
-                    </div>
-                    <textarea id="terms" placeholder="Cola aqui o texto de Termos &amp; Condições..."></textarea>
-                    <p class="hint">Evita conteúdos com dados pessoais privados. Usa documentos públicos.</p>
-                </div>
-
-                <div class="actions">
-                    <span class="chip">Resumo automático com IA</span>
-                    <div>
-                        <button class="button" id="btn">
-                            <span class="button-icon">▶</span>
-                            <span>Gerar resumo</span>
-                        </button>
-                    </div>
-                </div>
-                <p class="hint" id="statusText">Pronto para resumir.</p>
-            </section>
-
-            <section class="pane pane--right" aria-label="Resumo gerado">
-                <div class="output-header">
-                    <div>
-                        <h2>3. Lê o resumo</h2>
-                        <small>Explicação em linguagem simples.</small>
-                    </div>
-                    <div class="status">
-                        <span class="status-dot"></span>
-                        <span id="statusLabel">Assistente ativo</span>
-                    </div>
-                </div>
-                <div class="output-wrapper">
-                    <div id="output" class="output">
-                        <p class="placeholder-output">
-                            O resumo vai aparecer aqui. Inclui sempre:<br><br>
-                            • Visão geral<br>
-                            • O que a empresa recolhe<br>
-                            • Direitos e riscos<br>
-                            • Aviso final
-                        </p>
-                    </div>
-                </div>
-                <div id="error" class="error" style="display:none;"></div>
-                <p class="footer-note">Não substitui aconselhamento jurídico profissional.</p>
-            </section>
-        </section>
-
-        <section class="how" aria-label="Como funciona">
-            <article class="how-card">
-                <div class="how-title">1. Cola o texto</div>
-                <p>Copia Termos &amp; Condições de um site ou app e cola no campo. Quanto mais relevante for o excerto, melhor.</p>
-            </article>
-            <article class="how-card">
-                <div class="how-title">2. IA Analisa</div>
-                <p>O modelo Sonar (Llama 3.1) lê o texto, identifica padrões abusivos e traduz o "legalês".</p>
-            </article>
-            <article class="how-card">
-                <div class="how-title">3. Lê com calma</div>
-                <p>O resumo mostra os pontos que mais interessam: dados, direitos e riscos.</p>
-            </article>
-        </section>
     </main>
 
+    <footer class="app-footer">
+        <div class="disclaimer-text">
+            <strong>AVISO LEGAL:</strong><br>
+            Esta ferramenta utiliza Inteligência Artificial (Perplexity Sonar) para processar e resumir textos. 
+            Embora nos esforcemos pela precisão, a IA pode cometer erros ou alucinações. 
+            O conteúdo gerado é meramente informativo e <strong>não constitui aconselhamento jurídico</strong>. 
+            Para situações legais reais, consulte sempre um advogado qualificado. 
+            Os seus dados de input não são armazenados permanentemente.
+        </div>
+    </footer>
+
     <script>
-        const btn = document.getElementById("btn");
-        const termsEl = document.getElementById("terms");
-        const styleSelectEl = document.getElementById("style-select");
-        const outputEl = document.getElementById("output");
-        const errorEl = document.getElementById("error");
-        const statusLabel = document.getElementById("statusLabel");
-        const statusText = document.getElementById("statusText");
-        const scrollToToolBtn = document.getElementById("scrollToTool");
-        const toolSection = document.getElementById("tool");
-        const btnExample = document.getElementById("btnExample");
+        // Elementos
+        const btnSummarize = document.getElementById('btnSummarize');
+        const termsInput = document.getElementById('termsInput');
+        const styleSelect = document.getElementById('styleSelect');
+        const outputDiv = document.getElementById('output');
+        const customWrapper = document.getElementById('customInputWrapper');
+        const customPrompt = document.getElementById('customPrompt');
+        const btnCopy = document.getElementById('btnCopy');
+        const copyText = document.getElementById('copyText');
+        const btnExample = document.getElementById('btnExample');
+        const statusDot = document.getElementById('statusDot');
+        const statusLabel = document.getElementById('statusLabel');
 
-        // FUNCIONALIDADE 1: Scroll
-        if (scrollToToolBtn && toolSection) {
-            scrollToToolBtn.addEventListener("click", () => {
-                toolSection.scrollIntoView({ behavior: "smooth", block: "start" });
-            });
-        }
-
-        // FUNCIONALIDADE 2: Botão Exemplo
-        btnExample.addEventListener("click", () => {
-            termsEl.value = `TERMOS DE USO FICTÍCIOS "APP FANTASMA"
-1. DADOS: Ao usar esta app, concordas que podemos aceder ao teu microfone 24/7 e vender as tuas conversas a parceiros de publicidade.
-2. CONTEÚDO: Todas as fotos que publicares passam a ser nossas e podemos usá-las em anúncios sem te pagar.
-3. RISCOS: Não nos responsabilizamos se a tua conta for roubada.
-4. LEI: Renuncias ao direito de nos processar em tribunal.`;
-            // Efeito visual
-            termsEl.style.borderColor = "#22c55e";
-            setTimeout(() => termsEl.style.borderColor = "rgba(55, 65, 81, 0.95)", 500);
+        // Toggle do campo personalizado
+        styleSelect.addEventListener('change', () => {
+            if (styleSelect.value === 'custom') {
+                customWrapper.classList.add('visible');
+                setTimeout(() => customPrompt.focus(), 200);
+            } else {
+                customWrapper.classList.remove('visible');
+            }
         });
 
-        // FUNCIONALIDADE 3: Gerar Resumo
+        // Botão Exemplo
+        btnExample.addEventListener('click', () => {
+            termsInput.value = `TERMOS DE USO FICTÍCIOS - EXEMPLO
+1. DADOS: Ao aceitar, o utilizador concorda que a "Empresa X" pode aceder à câmara do dispositivo a qualquer momento para fins de "melhoria de serviço".
+2. ARBITRAGEM: O utilizador renuncia ao direito de processar a empresa em tribunal ou participar em ações coletivas.
+3. CONTEÚDO: Todo o conteúdo carregado pelo utilizador torna-se propriedade irrevogável da "Empresa X".`;
+            
+            // Flash visual para indicar inserção
+            termsInput.style.borderColor = "var(--accent)";
+            termsInput.style.boxShadow = "0 0 0 2px var(--accent-glow)";
+            setTimeout(() => {
+                termsInput.style = "";
+            }, 600);
+        });
+
+        // Função de Copiar
+        btnCopy.addEventListener('click', () => {
+            if (!outputDiv.innerText || outputDiv.innerText.includes("O resumo aparecerá aqui")) return;
+
+            navigator.clipboard.writeText(outputDiv.innerText).then(() => {
+                const originalText = copyText.textContent;
+                copyText.textContent = "Copiado!";
+                btnCopy.style.borderColor = "var(--accent)";
+                btnCopy.style.color = "#fff";
+                
+                setTimeout(() => {
+                    copyText.textContent = originalText;
+                    btnCopy.style = "";
+                }, 2000);
+            });
+        });
+
+        // Lógica de Resumo
         async function summarize() {
-            const terms = termsEl.value.trim();
-            let style = styleSelectEl.value;
-
-            errorEl.style.display = "none";
-            errorEl.textContent = "";
-
-            if (!terms) {
-                errorEl.textContent = "Por favor, cola algum texto de Termos & Condições primeiro.";
-                errorEl.style.display = "block";
+            const text = termsInput.value.trim();
+            
+            // Validação simples
+            if (!text) {
+                termsInput.style.borderColor = "#ef4444";
+                termsInput.placeholder = "⚠️ Erro: Precisas de colar algum texto aqui primeiro.";
+                setTimeout(() => {
+                    termsInput.style.borderColor = "";
+                    termsInput.placeholder = "Cola aqui o texto...";
+                }, 2500);
                 return;
             }
 
-            btn.disabled = true;
-            statusLabel.textContent = "A processar";
-            statusText.textContent = "A analisar texto com Perplexity AI...";
-            outputEl.innerHTML = '<div class="loading"><div class="spinner"></div><span>A gerar resumo...</span></div>';
+            // Estado de Loading
+            btnSummarize.disabled = true;
+            btnSummarize.innerHTML = '<div class="spinner"></div> Processando...';
+            
+            // Atualiza status dot
+            statusDot.style.background = "var(--accent)";
+            statusDot.style.boxShadow = "0 0 8px var(--accent)";
+            statusLabel.innerText = "A pensar...";
+
+            outputDiv.innerHTML = `
+                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; color:var(--text-muted); gap:15px;">
+                    <div class="spinner" style="border-color:rgba(255,255,255,0.1); border-top-color:var(--accent); width:30px; height:30px;"></div>
+                    <div style="font-size:13px; animation:fadeIn 1s infinite alternate;">A ler documento...</div>
+                </div>
+            `;
 
             try {
-                const resp = await fetch("/api/summarize", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ terms_text: terms, style })
+                const res = await fetch('/api/summarize', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        terms_text: text,
+                        style: styleSelect.value,
+                        custom_prompt: customPrompt.value
+                    })
                 });
 
-                const data = await resp.json();
+                const data = await res.json();
 
-                if (!resp.ok) {
-                    throw new Error(data.error || "Erro no servidor.");
-                }
+                if (data.error) throw new Error(data.error);
 
-                // MELHORIA: Renderização do Markdown
-                const cleanHTML = DOMPurify.sanitize(marked.parse(data.summary));
-                outputEl.innerHTML = cleanHTML;
+                // Renderização do Markdown com segurança (DOMPurify)
+                outputDiv.innerHTML = DOMPurify.sanitize(marked.parse(data.summary));
                 
-                statusLabel.textContent = "Resumo gerado";
-                statusText.textContent = "Sucesso.";
-            } catch (e) {
-                console.error(e);
-                errorEl.textContent = "Erro: " + e.message;
-                errorEl.style.display = "block";
-                outputEl.innerHTML = "";
-                statusLabel.textContent = "Erro";
+                statusLabel.innerText = "Resumo Pronto";
+
+            } catch (err) {
+                // Estado de Erro
+                statusDot.style.background = "#ef4444";
+                statusDot.style.boxShadow = "0 0 8px #ef4444";
+                statusLabel.innerText = "Erro";
+                
+                outputDiv.innerHTML = `
+                    <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100%; color:#ef4444; text-align:center;">
+                        <div style="font-size:30px; margin-bottom:10px;">⚠️</div>
+                        <strong>Ocorreu um erro</strong>
+                        <p style="font-size:13px; margin-top:5px; color:var(--text-muted);">${err.message}</p>
+                    </div>
+                `;
             } finally {
-                btn.disabled = false;
+                btnSummarize.disabled = false;
+                btnSummarize.innerHTML = '<span>Analisar Documento</span>';
             }
         }
 
-        btn.addEventListener("click", summarize);
-
-        termsEl.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                summarize();
-            }
+        // Trigger no botão e Enter
+        btnSummarize.addEventListener('click', summarize);
+        termsInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) summarize();
         });
     </script>
 </body>

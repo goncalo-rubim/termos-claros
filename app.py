@@ -3,135 +3,109 @@ import requests
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 
-# Carrega variáveis do ficheiro .env (apenas para desenvolvimento local)
-# No Render, as variáveis são lidas diretamente do sistema.
+# Carrega variáveis de ambiente
 load_dotenv()
 
 app = Flask(__name__)
 
-# --- CONFIGURAÇÃO ---
-
-# A chave da API deve estar definida nas "Environment Variables" do Render
+# Configurações
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
-
-# Endpoint oficial da API Perplexity
 PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions"
-
-# Modelo escolhido (o mais capaz e com maior contexto atual)
-# Nota: A Perplexity atualiza nomes frequentemente, este é o topo de gama atual baseado no Llama 3.1
 MODEL_NAME = "sonar"
 
-# Prompt de Sistema (Cérebro da IA)
-SYSTEM_PROMPT = """
-És um especialista jurídico sênior (mas não advogado) que traduz "legalês" para Português de Portugal claro, estruturado e acessível.
+# --- PERSONALIDADES DA IA ---
+STYLE_PROMPTS = {
+    "curto": "Sê conciso. Usa apenas bullet points curtos. Foca no essencial. Máximo 200 palavras.",
+    "detalhado": "Explica detalhadamente. Se houver conceitos técnicos (ex: cookies, arbitragem), explica-os de forma simples.",
+    "el5": "Explica como se eu tivesse 5 anos. Usa analogias do dia-a-dia. Tom educativo.",
+    "riscos": "Sê o 'Advogado do Diabo'. Ignora os benefícios. Lista APENAS perigos, renúncias de direitos e dados recolhidos.",
+    "custom": "Segue estritamente a instrução personalizada do utilizador."
+}
 
-OBJETIVO:
-Ler o texto jurídico fornecido e gerar um resumo prático formatado em MARKDOWN.
+# Prompt de Sistema (Cérebro)
+SYSTEM_PROMPT_BASE = """
+És o 'Termos Claros', um assistente jurídico AI especializado em Proteção do Consumidor (Portugal/EU).
 
-REGRAS DE FORMATAÇÃO:
-- Usa `###` para títulos de secções.
-- Usa listas com hífens `-` para facilitar a leitura.
-- Usa **negrito** para destacar riscos ou dados sensíveis.
-- Não uses blocos de código para o texto normal.
+⚠️ REGRA CRÍTICA DE FORMATO:
+A tua resposta DEVE começar SEMPRE com este bloco exato (Markdown quote):
 
-ESTRUTURA DA RESPOSTA:
-1. ### 🎯 Resumo em 1 Frase
-   (A essência do documento numa frase simples)
+> **⚠️ AVISO IA:** Este resumo é gerado automaticamente e serve apenas para fins informativos. **Não substitui a leitura integral do documento nem constitui aconselhamento jurídico profissional.** Para decisões legais, consulte um advogado.
 
-2. ### 🚩 Red Flags (Pontos Críticos)
-   (Lista com emojis 🔴 para cláusulas perigosas, abusivas, renúncias de direitos ou coisas estranhas)
+---
 
-3. ### 👤 Os teus Dados
-   (O que recolhem, cookies, localização, e com quem partilham)
+ESTRUTURA DO RESUMO (Usa Markdown):
+1. 🎯 **Resumo em 1 Frase**
+2. 🚨 **Red Flags & Riscos** (Usa emojis de alerta)
+3. 👤 **Os teus Dados** (O que recolhem e com quem partilham)
+4. ⚖️ **Os teus Direitos** (Cancelamento, Reembolso, Litígios)
+5. 💡 **Veredito Final**
 
-4. ### ⚖️ Os teus Direitos
-   (Como cancelar, apagar conta, ou resolver disputas)
+INSTRUÇÃO VISUAL:
+Se explicares um fluxo de dados complexo, usa a tag: `
 
-5. ### 💡 Conclusão
-   (Veredito final neutro)
+[Image of data flow diagram explaining X]
+`.
 
-Termina sempre com:
-*Aviso: Isto é um resumo automático gerado por IA e não substitui aconselhamento jurídico profissional.*
+CONTEXTO: O utilizador pediu o estilo: "{style_instruction}"
 """
 
-def chamar_perplexity(texto: str, estilo: str) -> str:
-    """
-    Envia o texto para a API da Perplexity e devolve o resumo.
-    """
+def chamar_perplexity(texto: str, estilo_key: str, custom_prompt: str = "") -> str:
     if not PERPLEXITY_API_KEY:
-        raise RuntimeError("A variável de ambiente PERPLEXITY_API_KEY não está configurada.")
+        raise RuntimeError("A API Key do Perplexity não está configurada.")
 
-    headers = {
-        "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
-    # Construção da mensagem para o Chat Completion
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": f"Estilo de resposta desejado: {estilo}\n\nTexto dos Termos para analisar:\n{texto}"}
-    ]
+    # Define a instrução de estilo
+    instruction = STYLE_PROMPTS.get(estilo_key, STYLE_PROMPTS["curto"])
+    if estilo_key == "custom" and custom_prompt:
+        instruction = f"Instrução personalizada: {custom_prompt}"
 
     payload = {
         "model": MODEL_NAME,
-        "messages": messages,
-        "temperature": 0.2,       # Baixa temperatura para reduzir alucinações
-        "max_tokens": 3000,       # Limite de resposta (suficiente para resumos detalhados)
-        "top_p": 0.9,
-        "return_citations": False # Não precisamos de citações da web para analisar um texto colado
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT_BASE.format(style_instruction=instruction)},
+            {"role": "user", "content": f"Analisa os seguintes Termos & Condições:\n\n{texto}"}
+        ],
+        "temperature": 0.1, # Baixa temperatura para precisão factual
+        "max_tokens": 2500
     }
 
     try:
-        response = requests.post(PERPLEXITY_URL, json=payload, headers=headers)
-        response.raise_for_status() # Lança exceção se o código HTTP for 4xx ou 5xx
-        
-        data = response.json()
-        
-        # Extrai o conteúdo da resposta da IA
-        return data["choices"][0]["message"]["content"]
-
+        response = requests.post(PERPLEXITY_URL, json=payload, headers={
+            "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
+            "Content-Type": "application/json"
+        })
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
+    
     except requests.exceptions.RequestException as e:
-        print(f"Erro na requisição à API: {e}")
-        # Tenta obter detalhes do erro se a API devolveu JSON de erro
-        if e.response is not None:
-             print(f"Detalhe da API: {e.response.text}")
-        raise RuntimeError("Falha ao comunicar com a inteligência artificial.")
+        print(f"Erro API: {e}")
+        # Retorna uma mensagem de erro genérica para o frontend não quebrar
+        raise RuntimeError("Não foi possível contactar a inteligência artificial. Tente novamente.")
 
-# --- ROTAS DA APLICAÇÃO ---
+# --- ROTAS ---
 
 @app.route("/")
 def home():
-    # Serve o ficheiro index.html da pasta 'templates'
     return render_template("index.html")
 
 @app.route("/api/summarize", methods=["POST"])
 def api_summarize():
-    # Obtém os dados JSON enviados pelo frontend
     data = request.get_json(silent=True) or {}
-    
-    texto_tc = data.get("terms_text", "")
-    estilo = data.get("style", "claro e direto")
+    texto = data.get("terms_text", "")
+    estilo = data.get("style", "curto")
+    custom = data.get("custom_prompt", "")
 
-    # 1. Validação: Texto vazio ou muito curto
-    if not texto_tc or len(texto_tc.strip()) < 10:
-        return jsonify({"error": "O texto fornecido é demasiado curto. Por favor, cola o texto completo."}), 400
+    # Validações de Backend
+    if not texto or len(texto.strip()) < 10:
+        return jsonify({"error": "O texto é demasiado curto para ser analisado."}), 400
     
-    # 2. Validação: Texto excessivamente longo (Segurança)
-    # 120.000 caracteres é um limite seguro para evitar sobrecarregar o servidor/API
-    if len(texto_tc) > 120000:
-        return jsonify({"error": "O texto é demasiado longo (máx 120k caracteres). Tenta enviar por partes."}), 400
+    if len(texto) > 150000:
+        return jsonify({"error": "Texto demasiado longo (limite: 150k caracteres)."}), 400
 
     try:
-        # Chama a função principal
-        resumo = chamar_perplexity(texto_tc, estilo)
+        resumo = chamar_perplexity(texto, estilo, custom)
         return jsonify({"summary": resumo})
-    
     except Exception as e:
-        # Log do erro no servidor (aparece nos logs do Render)
-        print(f"Erro interno: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # Este bloco só corre em desenvolvimento local.
-    # No Render, o Gunicorn é usado e este bloco é ignorado.
     app.run(debug=True)
